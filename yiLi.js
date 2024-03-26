@@ -3,9 +3,6 @@
  * 活动说明：每日任务可获得积分，兼容 NE 手机代理和青龙等 Node.js 环境，变量名称 id77_yiLi_cookies
  * 脚本来源：https://github.com/id77/QuantumultX/blob/master/task/yiLi.js
  * 更新时间：2023-08-29
- * # QuanX
- * https:\/\/club\.yili\.com\/MALLIFChe\/MCSWSIAPI\.asmx\/Call url script-request-body https://raw.githubusercontent.com/id77/QuantumultX/master/task/yiLi.cookie.js
- * 10 0 * * * https://raw.githubusercontent.com/id77/QuantumultX/master/task/yiLi.js, tag=伊利乳品, img-url=https://raw.githubusercontent.com/id77/QuantumultX/master/icon/yiLi.png
  */
 
 const $ = new Env('伊利乳品');
