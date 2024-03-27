@@ -20,23 +20,36 @@ hostname = %APPEND% app.moutai519.com.cn
 */
 
 const $ = new Env('i茅台');
-$.MT_TOKENS_KEY = 'MT_TOKENS';
-$.MT_TOKENS = $.getdata($.MT_TOKENS_KEY) || '';
+const notify = $.isNode() ? require('./sendNotify') : '';
+$.token = ($.isNode() ? process.env.MT_TOKEN : $.getdata('MT_TOKEN')) || '';
+$.deviceId = ($.isNode() ? process.env.MT_DEVICE_ID : $.getdata('MT_DEVICE_ID')) || '';
+$.version = ($.isNode() ? process.env.MT_VERSION : $.getdata('MT_VERSION')) || '1.5.9';
+$.userAgent = ($.isNode() ? process.env.MT_USERAGENT : $.getdata('MT_USERAGENT')) || 'iOS;16.2;Apple;iPhone 12';
+$.mtR = ($.isNode() ? process.env.MT_R : $.getdata('MT_R')) || '';
+$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'true';
 
 !(async () => {
   if (isGetCookie = typeof $request !== `undefined`) {
     GetCookie();
+    $.done();
+  } else{
+        if (!$.token) {
+            $.msg($.name, '❌ 请先获取茅台Cookie。');
+            return;
+        }
+        //await doApply();  // 进行申购
   }
 
   function GetCookie() {
     if ($request && $request.headers) {
-      log($request.headers);
+      debug($request.headers);
       if (($request.headers['MT-Token'] && $request.headers['MT-Device-ID']) || ($request.headers['mt-token'] && $request.headers['mt-device-id'])) {
         let new_MT_Token = $request.headers['MT-Token'] || $request.headers['mt-token'];
         let new_Device_ID = $request.headers['MT-Device-ID'] || $request.headers['mt-device-id'];
-        let old_MT_Token = $.MT_TOKENS.split(',') ? $.MT_TOKENS.split(',')[1] : '';
+        let old_MT_Token = $.token ;
         if (old_MT_Token !== new_MT_Token) {
-          $.setdata(new_Device_ID + ',' + new_MT_Token, $.MT_TOKENS_KEY);
+          $.setdata(new_MT_Token, 'MT_TOKEN');
+          $.setdata(new_Device_ID, 'MT_DEVICE_ID');
           $.msg($.name, `🎉 Token获取成功`, `${new_Device_ID + ',' + new_MT_Token}`);
         } else {
           $.log(`无需更新 MT-Token:\n${new_Device_ID + ',' + new_MT_Token}\n`);
@@ -60,15 +73,69 @@ $.MT_TOKENS = $.getdata($.MT_TOKENS_KEY) || '';
     }
   }
 
-  function log(text) {
-    if ($.getdata('is_debug') === 'true') {
-      if (typeof text == "string") {
-        console.log(text);
-      } else if (typeof text == "object") {
-        console.log($.toStr(text));
+  async function doApply(){
+
+    let opt = {
+      url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
+      headers: {
+        'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
+        'Accept-Encoding' : `gzip, deflate, br`,
+        'Host' : `app.moutai519.com.cn`,
+        'MT-V' : `c6fc4b6638560a05a986f99fd74`,
+        'MT-User-Tag' : `0`,
+        'MT-Token' : `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtdCIsImV4cCI6MTcxNDA1NzkyMiwidXNlcklkIjoxMTI3MTY3MTE4LCJkZXZpY2VJZCI6IjEzQzk0MENDLTY1QUUtNDA1OS05RjZELTE1OTNCNTU4QjdGOSIsImlhdCI6MTcxMTQ2NTkyMn0.gU46rluMjfIuJlDMF5XBB7jPeymvLHHdngSfUpCbzM4`,
+        'Connection' : `keep-alive`,
+        'MT-Device-ID' : `13C940CC-65AE-4059-9F6D-1593B558B7F9`,
+        'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+        'MT-Team-ID' : ``,
+        'Content-Type' : `application/json`,
+        'MT-Request-ID' : `171150128827239133`,
+        'MT-APP-Version' : `1.5.9`,
+        'User-Agent' : `iOS;16.2;Apple;iPhone 12`,
+        'MT-K' : `1711501288272`,
+        'MT-R' : `clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==`,
+        'MT-Bundle-ID' : `com.moutai.mall`,
+        'MT-Network-Type' : ``,
+        'Accept' : `*/*`,
+        'BS-DVID' : `0kOR8q_PjxeN0g25Pq-1iTNrGvW5-ntdQNqmf37YyGZSKTPU1J9111MUJAlyJvp_LCCSXnkMnrmt9jaEAYffxkw`,
+        'MT-Lat' : `19.940241`,
+        'MT-Lng' : `110.477453`
+      },
+      body: `{"actParam":"IdiwwdtRdEBhdeHkaJbq1J59r8j5hLj3e34vWmtgR3vQsJT0lPVLyPSppdwcZRO309DgSiJUrQ2XSUZAYrkZHiZSFc1A3JYV5GglhKjPWFHdXEX0Ngfx+m\/8NzdST2EWCciaQTqfrETuTPvWMzRmDA==","itemInfoList":[{"count":1,"itemId":"10941"}],"shopId":"246460102001","sessionId":981}`
+    }
+    debug(opt)
+    return new Promise(resolve =>{
+      $.post(opt,async (error, response, data) => {
+        try {
+        let result = $.toObj(data) || response;
+        debug(result);
+        if(result.code == 2000){
+          console.log(`✅ ${result.data.successDesc}!`);
+        }else{
+          console.log(`⛔️ ${result.msg}`);
+        }
+        
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
       }
+      })
+    })
+
+  }
+
+function debug(content, title = "debug") {
+  let start = `\n----- ${title} -----\n`;
+  let end = `\n----- ${$.time('HH:mm:ss')} -----\n`;
+  if ($.is_debug === 'true') {
+    if (typeof content == "string") {
+      console.log(start + content + end);
+    } else if (typeof content == "object") {
+      console.log(start + $.toStr(content) + end);
     }
   }
+}
 
 })()
   .catch((e) => $.logErr(e))
