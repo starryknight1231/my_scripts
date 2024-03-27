@@ -1,6 +1,7 @@
 /*
-脚本名称：i茅台Token
-更新时间：2023-02-07
+脚本名称：i茅台自动申购
+脚本ck来源：https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/get_maotai_token.js
+更新时间：2023-03-27
 
 ====================================================================================================
 配置 (Quantumult X)
@@ -9,14 +10,6 @@
 
 [MITM]
 hostname = app.moutai519.com.cn
-====================================================================================================
-配置 (Surge)
-[Script]
-i茅台Token = type=http-request,pattern=^https:\/\/app\.moutai519\.com\.cn\/xhr\/front\/mall\/message\/unRead\/query,requires-body=0,max-size=0,timeout=1000,script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/get_maotai_token.js,script-update-interval=0
-
-[MITM]
-hostname = %APPEND% app.moutai519.com.cn
-====================================================================================================
 */
 
 const $ = new Env('i茅台');
@@ -26,7 +19,7 @@ $.deviceId = ($.isNode() ? process.env.MT_DEVICE_ID : $.getdata('MT_DEVICE_ID'))
 $.version = ($.isNode() ? process.env.MT_VERSION : $.getdata('MT_VERSION')) || '1.5.9';
 $.userAgent = ($.isNode() ? process.env.MT_USERAGENT : $.getdata('MT_USERAGENT')) || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = ($.isNode() ? process.env.MT_R : $.getdata('MT_R')) || '';
-$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'false';
+$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'true';
 
 !(async () => {
   if (isGetCookie = typeof $request !== `undefined`) {
@@ -37,9 +30,18 @@ $.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'fal
             $.msg($.name, '❌ 请先获取茅台Cookie。');
             return;
         }
-        await doApply();  // 进行申购
+
+        // 如果当前时间是早上9点到10点
+        if(isBetween9And10AM()){
+            await doApply10941();  // 进行申购龙年茅台
+        }else if(isAfter6PM()){
+            await doQueryApplyResult();  // 查询申购结果
+        }else{
+            $.log(`⛔️ 当前时间暂无任务可以执行`);
+        }
   }
 
+  // 获取ck信息
   function GetCookie() {
     if ($request && $request.headers) {
       debug($request.headers);
@@ -73,7 +75,29 @@ $.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'fal
     }
   }
 
-  async function doApply(){
+  // 判断是不是早上9点到10点
+  function isBetween9And10AM() {
+    var now = new Date();
+    var currentHour = now.getHours();
+ 
+    return currentHour === 9 || (currentHour === 10 && now.getMinutes() === 0);
+  }
+
+  // 判断当前时间是不是下午6点之后
+  function isAfter6PM() {
+    var now = new Date();
+    var currentHour = now.getHours();
+
+    // 判断当前小时是否大于等于18（即下午6点）
+    if (currentHour >= 18) {
+        return true;
+    }
+
+    return false;
+  }
+
+  // 执行申购操作
+  async function doApply10941(){
 
     let opt = {
       url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
@@ -100,15 +124,68 @@ $.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'fal
     }
     debug(opt)
     return new Promise(resolve =>{
-      $.post(opt,async (error, response, data) => {
+      $.post(opt,async (err, response, data) => {
         try {
-        let result = $.toObj(data) || response;
-        debug(result);
-        if(result.code == 2000){
-          console.log(`✅ ${result.data.successDesc}!`);
-        }else{
-          console.log(`⛔️ ${JSON.stringify(result)}`);
-        }
+          err && $.log(err);
+          let result = $.toObj(data) || response;
+          $.log(`申购结果：${$.toStr(result)}`);
+           if(result.code == 2000){
+            $.msg($.name,`✅ ${result.data.successDesc}!`);
+          }else{
+            $.msg($.name,`⛔️ 申购失败！`);
+          }
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+      })
+    })
+
+  }
+
+   // 查询申购结果
+  async function doQueryApplyResult(){
+
+    let opt = {
+      url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/list/pageOne/queryV2`,
+      headers: {
+        'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
+        'Accept-Encoding' : `gzip, deflate, br`,
+        'Host' : `app.moutai519.com.cn`,
+        'MT-V' : `c6fc4b6638560a05a986f99fd74`,
+        'MT-User-Tag' : `0`,
+        'MT-Token' : $.token,
+        'MT-Device-ID' : $.deviceId,
+        'Connection' : `keep-alive`,
+        'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+        'MT-Team-ID' : ``,
+        'Content-Type' : `application/json`,
+        'MT-APP-Version' : $.version,
+        'User-Agent' : $.userAgent,
+        'MT-R' : $.mtR,
+        'MT-Bundle-ID' : `com.moutai.mall`,
+        'MT-Network-Type' : ``,
+        'Accept' : `*/*`
+      }
+    }
+    debug(opt)
+    return new Promise(resolve =>{
+      $.get(opt,async (err, response, data) => {
+        try {
+          err && $.log(err);
+          let result = $.toObj(data) || response;
+          $.log(`申购查询结果:${$.toStr(response)}`);
+          if(result.code == 2000){
+            reservationItems = result.data.reservationItemVOS;
+            reservationItems.forEach(item=>{
+              if(item.status == 1){
+                $.msg($.name,`⛔️ ${formatTimestamp(item.reservationTime)}申购的${item.itemName}失败了!`);
+              }else{
+                $.msg($.name, `🎉 ${formatTimestamp(item.reservationTime)} ${item.itemName}申购成功。`);
+              }
+            })
+          }
         
       } catch (error) {
         $.log(error);
@@ -120,6 +197,9 @@ $.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'fal
 
   }
 
+
+
+
 function debug(content, title = "debug") {
   let start = `\n----- ${title} -----\n`;
   let end = `\n----- ${$.time('HH:mm:ss')} -----\n`;
@@ -130,6 +210,27 @@ function debug(content, title = "debug") {
       console.log(start + $.toStr(content) + end);
     }
   }
+}
+
+function formatTimestamp(timestamp, formatString= 'YYYY-MM-DD hh:mm:ss') {
+    const date = new Date(timestamp);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const second = String(date.getSeconds()).padStart(2, '0');
+
+    const formattedDate = formatString
+        .replace('YYYY', year)
+        .replace('MM', month)
+        .replace('DD', day)
+        .replace('hh', hour)
+        .replace('mm', minute)
+        .replace('ss', second);
+
+    return formattedDate;
 }
 
 })()
