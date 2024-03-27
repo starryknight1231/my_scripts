@@ -26,7 +26,7 @@ $.deviceId = ($.isNode() ? process.env.MT_DEVICE_ID : $.getdata('MT_DEVICE_ID'))
 $.version = ($.isNode() ? process.env.MT_VERSION : $.getdata('MT_VERSION')) || '1.5.9';
 $.userAgent = ($.isNode() ? process.env.MT_USERAGENT : $.getdata('MT_USERAGENT')) || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = ($.isNode() ? process.env.MT_R : $.getdata('MT_R')) || '';
-$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'true';
+$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'false';
 
 !(async () => {
   if (isGetCookie = typeof $request !== `undefined`) {
@@ -37,7 +37,7 @@ $.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'tru
             $.msg($.name, '❌ 请先获取茅台Cookie。');
             return;
         }
-        //await doApply();  // 进行申购
+        await doApply();  // 进行申购
   }
 
   function GetCookie() {
@@ -83,23 +83,18 @@ $.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'tru
         'Host' : `app.moutai519.com.cn`,
         'MT-V' : `c6fc4b6638560a05a986f99fd74`,
         'MT-User-Tag' : `0`,
-        'MT-Token' : `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtdCIsImV4cCI6MTcxNDA1NzkyMiwidXNlcklkIjoxMTI3MTY3MTE4LCJkZXZpY2VJZCI6IjEzQzk0MENDLTY1QUUtNDA1OS05RjZELTE1OTNCNTU4QjdGOSIsImlhdCI6MTcxMTQ2NTkyMn0.gU46rluMjfIuJlDMF5XBB7jPeymvLHHdngSfUpCbzM4`,
+        'MT-Token' : $.token,
+        'MT-Device-ID' : $.deviceId,
         'Connection' : `keep-alive`,
-        'MT-Device-ID' : `13C940CC-65AE-4059-9F6D-1593B558B7F9`,
         'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
         'MT-Team-ID' : ``,
         'Content-Type' : `application/json`,
-        'MT-Request-ID' : `171150128827239133`,
-        'MT-APP-Version' : `1.5.9`,
-        'User-Agent' : `iOS;16.2;Apple;iPhone 12`,
-        'MT-K' : `1711501288272`,
-        'MT-R' : `clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==`,
+        'MT-APP-Version' : $.version,
+        'User-Agent' : $.userAgent,
+        'MT-R' : $.mtR,
         'MT-Bundle-ID' : `com.moutai.mall`,
         'MT-Network-Type' : ``,
-        'Accept' : `*/*`,
-        'BS-DVID' : `0kOR8q_PjxeN0g25Pq-1iTNrGvW5-ntdQNqmf37YyGZSKTPU1J9111MUJAlyJvp_LCCSXnkMnrmt9jaEAYffxkw`,
-        'MT-Lat' : `19.940241`,
-        'MT-Lng' : `110.477453`
+        'Accept' : `*/*`
       },
       body: `{"actParam":"IdiwwdtRdEBhdeHkaJbq1J59r8j5hLj3e34vWmtgR3vQsJT0lPVLyPSppdwcZRO309DgSiJUrQ2XSUZAYrkZHiZSFc1A3JYV5GglhKjPWFHdXEX0Ngfx+m\/8NzdST2EWCciaQTqfrETuTPvWMzRmDA==","itemInfoList":[{"count":1,"itemId":"10941"}],"shopId":"246460102001","sessionId":981}`
     }
@@ -112,7 +107,7 @@ $.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'tru
         if(result.code == 2000){
           console.log(`✅ ${result.data.successDesc}!`);
         }else{
-          console.log(`⛔️ ${result.msg}`);
+          console.log(`⛔️ ${JSON.stringify(result)}`);
         }
         
       } catch (error) {
