@@ -16,14 +16,17 @@ const $ = new Env('i茅台');
 
 
 // 定义变量
+
+const AES_KEY = 'qbhajinldepmucsonaaaccgypwuvcjaa'
+const AES_IV = '2018534749963515'
+const ITEM_CODES = ['10941', '10942'];   //需要预约的商品(默认只预约2个赚钱的茅子)
+$.userId = $.getdata('MT_USERID') || '';
 $.token = $.getdata('MT_TOKEN') || '';
 $.deviceId = $.getdata('MT_DEVICE_ID') || '';
 $.version = $.getdata('MT_VERSION') || '1.5.9';
-$.userAgent =$.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
+$.userAgent = $.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = $.getdata('MT_R') || '';
 $.is_debug = $.getdata('is_debug') || 'true';
-const AES_KEY = 'qbhajinldepmucsonaaaccgypwuvcjaa'
-const AES_IV = '2018534749963515'
 
 // 主函数
 function main(){
@@ -37,16 +40,20 @@ function main(){
         return;
       }
 
-      // 如果当前时间是早上9点到10点
-      if(isBetween9And10AM()){
-        //await doApply10941();  // 进行申购龙年茅台
-      }else if(isAfter6PM()){
-        //await doQueryApplyResult();  // 查询申购结果
-      }else{
-        $.log(`⛔️ 当前时间暂无任务可以执行`);
+      for (let item of ITEM_CODES) {
+        var maxShopId = await getLocationCount();
       }
 
-      await getTodaySessionId();
+
+      // // 如果当前时间是早上9点到10点
+      // if(isBetween9And10AM()){
+      //   //await doApply10941();  // 进行申购龙年茅台
+      // }else if(isAfter6PM()){
+      //   //await doQueryApplyResult();  // 查询申购结果
+      // }else{
+      //   $.log(`⛔️ 当前时间暂无任务可以执行`);
+      // }
+
 
       //var params = JSON.stringify({"itemInfoList":[{"count":1,"itemId":"10941"}],"sessionId":982,"userId":"1127167118","shopId":"246460102001"});
       //var result = aes_encrypt(params,AES_KEY,AES_IV);
@@ -89,6 +96,9 @@ function GetCookie() {
       $.log(`🎉 MT_R 写入成功:\n${$.MT_R}\n`);
     }
   }
+  if ($response && $response.body) {
+    $.log(response.body)
+  }
 }
 
 // 获取当日的sessionId
@@ -101,8 +111,6 @@ async function getTodaySessionId(){
     $.get({url},async (err, response, data) => {
       try {
         err && $.log(err);
-        console.log(response)
-        console.log(data)
         let result = $.toObj(data) || response;
         if(result.code == 2000){
           $.log(`当日 sessionId 获取成功: ${result.data.sessionId}`)
