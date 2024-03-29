@@ -46,7 +46,9 @@ const AES_IV = '2018534749963515'
             $.log(`⛔️ 当前时间暂无任务可以执行`);
         }
     var params = JSON.stringify({"itemInfoList":[{"count":1,"itemId":"10941"}],"sessionId":982,"userId":"1127167118","shopId":"246460102001"});
-    console.log(aes_encrypt(params,AES_KEY,AES_IV));
+    var result = aes_encrypt(params,AES_KEY,AES_IV);
+    console.log("加密后: " + result);
+    console.log("解密后: " + aes_decrypt(params,AES_KEY,AES_IV));
   }
 
   // 获取ck信息
@@ -104,9 +106,30 @@ const AES_IV = '2018534749963515'
     return false;
   }
 
-  // aes 加密
+  /**
+   * aes cbc pkcs7 加密
+   *
+   * @param content
+   * @param key
+   * @param iv
+   * @returns {string}
+   */
   function aes_encrypt(content,key,iv) {
-    return String(CryptoJS.AES.encrypt(content, key, { iv: iv}));
+    return String(CryptoJS.AES.encrypt(content, CryptoJS.enc.Utf8.parse(key), { iv: CryptoJS.enc.Utf8.parse(iv)}));
+  }
+
+  /**
+   * aes cbc pkcs7 解密
+   *
+   * @param content
+   * @param key
+   * @param iv
+   * @returns {string}
+   */
+  function aes_decrypt(content,key,iv) {
+    const bytes = CryptoJS.AES.decrypt(content, CryptoJS.enc.Utf8.parse(key), {
+      iv: CryptoJS.enc.Utf8.parse(iv)});
+    return bytes.toString(CryptoJS.enc.Utf8);
   }
 
   // 执行申购操作
