@@ -45,235 +45,242 @@ function main(){
       }else{
         $.log(`⛔️ 当前时间暂无任务可以执行`);
       }
-      var params = JSON.stringify({"itemInfoList":[{"count":1,"itemId":"10941"}],"sessionId":982,"userId":"1127167118","shopId":"246460102001"});
-      var result = aes_encrypt(params,AES_KEY,AES_IV);
-      console.log("加密后: " + result);
-      console.log("解密后: " + aes_decrypt(result,AES_KEY,AES_IV));
-    }
 
-    // 获取ck信息
-    function GetCookie() {
-      if ($request && $request.headers) {
-        debug($request.headers);
-        if (($request.headers['MT-Token'] && $request.headers['MT-Device-ID']) || ($request.headers['mt-token'] && $request.headers['mt-device-id'])) {
-          let new_MT_Token = $request.headers['MT-Token'] || $request.headers['mt-token'];
-          let new_Device_ID = $request.headers['MT-Device-ID'] || $request.headers['mt-device-id'];
-          let old_MT_Token = $.token ;
-          if (old_MT_Token !== new_MT_Token) {
-            $.setdata(new_MT_Token, 'MT_TOKEN');
-            $.setdata(new_Device_ID, 'MT_DEVICE_ID');
-            $.msg($.name, `🎉 Token获取成功`, `${new_Device_ID + ',' + new_MT_Token}`);
-          } else {
-            $.log(`无需更新 MT-Token:\n${new_Device_ID + ',' + new_MT_Token}\n`);
-          }
-        }
-        if ($request.headers['MT-APP-Version'] || $request.headers['mt-app-version']) {
-          $.MT_VERSION = $request.headers['MT-APP-Version'] || $request.headers['mt-app-version'];
-          $.setdata($.MT_VERSION, `MT_VERSION`);
-          $.log(`🎉 MT_VERSION 写入成功:\n${$.MT_VERSION}\n`);
-        }
-        if ($request.headers['User-Agent'] || $request.headers['user-agent']) {
-          $.MT_USERAGENT = $request.headers['User-Agent'] || $request.headers['user-agent'];
-          $.setdata($.MT_USERAGENT, `MT_USERAGENT`);
-          $.log(`🎉 MT_USERAGENT 写入成功:\n${$.MT_USERAGENT}\n`);
-        }
-        if ($request.headers['MT-R'] || $request.headers['mt-r']) {
-          $.MT_R = $request.headers['MT-R'] || $request.headers['mt-r'];
-          $.setdata($.MT_R, `MT_R`);
-          $.log(`🎉 MT_R 写入成功:\n${$.MT_R}\n`);
-        }
-      }
-    }
+      await getTodaySessionId();
 
-    // 判断是不是早上9点到10点
-    function isBetween9And10AM() {
-      var now = new Date();
-      var currentHour = now.getHours();
-
-      return currentHour === 9 || (currentHour === 10 && now.getMinutes() === 0);
-    }
-
-    // 判断当前时间是不是下午6点之后
-    function isAfter6PM() {
-      var now = new Date();
-      var currentHour = now.getHours();
-
-      // 判断当前小时是否大于等于18（即下午6点）
-      if (currentHour >= 18) {
-        return true;
-      }
-
-      return false;
-    }
-
-    /**
-     * aes cbc pkcs7 加密
-     *
-     * @param content
-     * @param key
-     * @param iv
-     * @returns {string}
-     */
-    function aes_encrypt(content,key,iv) {
-      return String(CryptoJS.AES.encrypt(content, CryptoJS.enc.Utf8.parse(key), { iv: CryptoJS.enc.Utf8.parse(iv)}));
-    }
-
-    /**
-     * aes cbc pkcs7 解密
-     *
-     * @param content
-     * @param key
-     * @param iv
-     * @returns {string}
-     */
-    function aes_decrypt(content,key,iv) {
-      const bytes = CryptoJS.AES.decrypt(content, CryptoJS.enc.Utf8.parse(key), {
-        iv: CryptoJS.enc.Utf8.parse(iv)});
-      return bytes.toString(CryptoJS.enc.Utf8);
-    }
-
-    // 执行申购操作
-    async function doApply10941(){
-
-      let opt = {
-        url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
-        headers: {
-          'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
-          'Accept-Encoding' : `gzip, deflate, br`,
-          'Host' : `app.moutai519.com.cn`,
-          'MT-V' : `c6fc4b6638560a05a986f99fd74`,
-          'MT-User-Tag' : `0`,
-          'MT-Token' : $.token,
-          'MT-Device-ID' : $.deviceId,
-          'Connection' : `keep-alive`,
-          'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
-          'MT-Team-ID' : ``,
-          'Content-Type' : `application/json`,
-          'MT-APP-Version' : $.version,
-          'User-Agent' : $.userAgent,
-          'MT-R' : $.mtR,
-          'MT-Bundle-ID' : `com.moutai.mall`,
-          'MT-Network-Type' : ``,
-          'Accept' : `*/*`
-        },
-        body: `{"actParam":"IdiwwdtRdEBhdeHkaJbq1J59r8j5hLj3e34vWmtgR3vQsJT0lPVLyPSppdwcZRO309DgSiJUrQ2XSUZAYrkZHiZSFc1A3JYV5GglhKjPWFHdXEX0Ngfx+m\/8NzdST2EWCciaQTqfrETuTPvWMzRmDA==","itemInfoList":[{"count":1,"itemId":"10941"}],"shopId":"246460102001","sessionId":981}`
-      }
-      debug(opt)
-      return new Promise(resolve =>{
-        $.post(opt,async (err, response, data) => {
-          try {
-            err && $.log(err);
-            let result = $.toObj(data) || response;
-            $.log(`申购结果：${$.toStr(result)}`);
-            if(result.code == 2000){
-              $.msg($.name,`✅ ${result.data.successDesc}!`);
-            }else{
-              $.msg($.name,`⛔️ 申购失败！`);
-            }
-          } catch (error) {
-            $.log(error);
-          } finally {
-            resolve()
-          }
-        })
-      })
+      //var params = JSON.stringify({"itemInfoList":[{"count":1,"itemId":"10941"}],"sessionId":982,"userId":"1127167118","shopId":"246460102001"});
+      //var result = aes_encrypt(params,AES_KEY,AES_IV);
 
     }
-
-    // 查询申购结果
-    async function doQueryApplyResult(){
-
-      let opt = {
-        url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/list/pageOne/queryV2`,
-        headers: {
-          'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
-          'Accept-Encoding' : `gzip, deflate, br`,
-          'Host' : `app.moutai519.com.cn`,
-          'MT-V' : `c6fc4b6638560a05a986f99fd74`,
-          'MT-User-Tag' : `0`,
-          'MT-Token' : $.token,
-          'MT-Device-ID' : $.deviceId,
-          'Connection' : `keep-alive`,
-          'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
-          'MT-Team-ID' : ``,
-          'Content-Type' : `application/json`,
-          'MT-APP-Version' : $.version,
-          'User-Agent' : $.userAgent,
-          'MT-R' : $.mtR,
-          'MT-Bundle-ID' : `com.moutai.mall`,
-          'MT-Network-Type' : ``,
-          'Accept' : `*/*`
-        }
-      }
-      debug(opt)
-      return new Promise(resolve =>{
-        $.get(opt,async (err, response, data) => {
-          try {
-            err && $.log(err);
-            let result = $.toObj(data) || response;
-            $.log(`申购查询结果:${$.toStr(response)}`);
-            if(result.code == 2000){
-              reservationItems = result.data.reservationItemVOS;
-              reservationItems.forEach(item=>{
-                if(item.status == 1){
-                  $.msg($.name,`⛔️ ${formatTimestamp(item.reservationTime)}申购的${item.itemName}失败了!`);
-                }else{
-                  $.msg($.name, `🎉 ${formatTimestamp(item.reservationTime)} ${item.itemName}申购成功。`);
-                }
-              })
-            }
-
-          } catch (error) {
-            $.log(error);
-          } finally {
-            resolve()
-          }
-        })
-      })
-
-    }
-
-
-
-
-    function debug(content, title = "debug") {
-      let start = `\n----- ${title} -----\n`;
-      let end = `\n----- ${$.time('HH:mm:ss')} -----\n`;
-      if ($.is_debug === 'true') {
-        if (typeof content == "string") {
-          console.log(start + content + end);
-        } else if (typeof content == "object") {
-          console.log(start + $.toStr(content) + end);
-        }
-      }
-    }
-
-    function formatTimestamp(timestamp, formatString= 'YYYY-MM-DD hh:mm:ss') {
-      const date = new Date(timestamp);
-
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hour = String(date.getHours()).padStart(2, '0');
-      const minute = String(date.getMinutes()).padStart(2, '0');
-      const second = String(date.getSeconds()).padStart(2, '0');
-
-      const formattedDate = formatString
-          .replace('YYYY', year)
-          .replace('MM', month)
-          .replace('DD', day)
-          .replace('hh', hour)
-          .replace('mm', minute)
-          .replace('ss', second);
-
-      return formattedDate;
-    }
-
   })()
       .catch((e) => $.logErr(e))
       .finally(() => $.done());
 }
 
+// 获取ck信息
+function GetCookie() {
+  if ($request && $request.headers) {
+    debug($request.headers);
+    if (($request.headers['MT-Token'] && $request.headers['MT-Device-ID']) || ($request.headers['mt-token'] && $request.headers['mt-device-id'])) {
+      let new_MT_Token = $request.headers['MT-Token'] || $request.headers['mt-token'];
+      let new_Device_ID = $request.headers['MT-Device-ID'] || $request.headers['mt-device-id'];
+      let old_MT_Token = $.token ;
+      if (old_MT_Token !== new_MT_Token) {
+        $.setdata(new_MT_Token, 'MT_TOKEN');
+        $.setdata(new_Device_ID, 'MT_DEVICE_ID');
+        $.msg($.name, `🎉 Token获取成功`, `${new_Device_ID + ',' + new_MT_Token}`);
+      } else {
+        $.log(`无需更新 MT-Token:\n${new_Device_ID + ',' + new_MT_Token}\n`);
+      }
+    }
+    if ($request.headers['MT-APP-Version'] || $request.headers['mt-app-version']) {
+      $.MT_VERSION = $request.headers['MT-APP-Version'] || $request.headers['mt-app-version'];
+      $.setdata($.MT_VERSION, `MT_VERSION`);
+      $.log(`🎉 MT_VERSION 写入成功:\n${$.MT_VERSION}\n`);
+    }
+    if ($request.headers['User-Agent'] || $request.headers['user-agent']) {
+      $.MT_USERAGENT = $request.headers['User-Agent'] || $request.headers['user-agent'];
+      $.setdata($.MT_USERAGENT, `MT_USERAGENT`);
+      $.log(`🎉 MT_USERAGENT 写入成功:\n${$.MT_USERAGENT}\n`);
+    }
+    if ($request.headers['MT-R'] || $request.headers['mt-r']) {
+      $.MT_R = $request.headers['MT-R'] || $request.headers['mt-r'];
+      $.setdata($.MT_R, `MT_R`);
+      $.log(`🎉 MT_R 写入成功:\n${$.MT_R}\n`);
+    }
+  }
+}
+
+// 获取当日的sessionId
+async function getTodaySessionId(){
+  let today = new Date(); // 获取当前日期时间
+  today.setHours(0, 0, 0, 0); // 将时间设置为午夜（零点）
+  const dayTime = today.getTime();
+  let url = `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/index/session/get/${dayTime}`;
+  return new Promise(resolve =>{
+    $.get({url},async (err, response, data) => {
+      try {
+        err && $.log(err);
+        console.log(response)
+        console.log(data)
+        let result = $.toObj(data) || response;
+        if(result.code == 2000){
+          $.log(`当日 sessionId 获取成功: ${result.data.sessionId}`)
+          $.todaySessionId = result.data.sessionId;
+        }else{
+          $.logErr(result);
+          $.msg($.name,`⛔️ 当日 sessionId 获取失败！`);
+        }
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+
+
+}
+
+// 判断是不是早上9点到10点
+function isBetween9And10AM() {
+  var now = new Date();
+  var currentHour = now.getHours();
+
+  return currentHour === 9 || (currentHour === 10 && now.getMinutes() === 0);
+}
+
+// 判断当前时间是不是下午6点之后
+function isAfter6PM() {
+  var now = new Date();
+  var currentHour = now.getHours();
+
+  // 判断当前小时是否大于等于18（即下午6点）
+  if (currentHour >= 18) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * aes cbc pkcs7 加密
+ *
+ * @param content
+ * @param key
+ * @param iv
+ * @returns {string}
+ */
+function aes_encrypt(content,key,iv) {
+  return String(CryptoJS.AES.encrypt(content, CryptoJS.enc.Utf8.parse(key), { iv: CryptoJS.enc.Utf8.parse(iv)}));
+}
+
+/**
+ * aes cbc pkcs7 解密
+ *
+ * @param content
+ * @param key
+ * @param iv
+ * @returns {string}
+ */
+function aes_decrypt(content,key,iv) {
+  const bytes = CryptoJS.AES.decrypt(content, CryptoJS.enc.Utf8.parse(key), {
+    iv: CryptoJS.enc.Utf8.parse(iv)});
+  return bytes.toString(CryptoJS.enc.Utf8);
+}
+
+// 执行申购操作
+async function doApply10941(){
+
+  let opt = {
+    url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
+    headers: {
+      'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
+      'Accept-Encoding' : `gzip, deflate, br`,
+      'Host' : `app.moutai519.com.cn`,
+      'MT-V' : `c6fc4b6638560a05a986f99fd74`,
+      'MT-User-Tag' : `0`,
+      'MT-Token' : $.token,
+      'MT-Device-ID' : $.deviceId,
+      'Connection' : `keep-alive`,
+      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+      'MT-Team-ID' : ``,
+      'Content-Type' : `application/json`,
+      'MT-APP-Version' : $.version,
+      'User-Agent' : $.userAgent,
+      'MT-R' : $.mtR,
+      'MT-Bundle-ID' : `com.moutai.mall`,
+      'MT-Network-Type' : ``,
+      'Accept' : `*/*`
+    },
+    body: `{"actParam":"IdiwwdtRdEBhdeHkaJbq1J59r8j5hLj3e34vWmtgR3vQsJT0lPVLyPSppdwcZRO309DgSiJUrQ2XSUZAYrkZHiZSFc1A3JYV5GglhKjPWFHdXEX0Ngfx+m\/8NzdST2EWCciaQTqfrETuTPvWMzRmDA==","itemInfoList":[{"count":1,"itemId":"10941"}],"shopId":"246460102001","sessionId":981}`
+  }
+  debug(opt)
+  return new Promise(resolve =>{
+    $.post(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        $.log(`申购结果：${$.toStr(result)}`);
+        if(result.code == 2000){
+          $.msg($.name,`✅ ${result.data.successDesc}!`);
+        }else{
+          $.msg($.name,`⛔️ 申购失败！`);
+        }
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+
+}
+
+// 查询申购结果
+async function doQueryApplyResult(){
+
+  let opt = {
+    url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/list/pageOne/queryV2`,
+    headers: {
+      'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
+      'Accept-Encoding' : `gzip, deflate, br`,
+      'Host' : `app.moutai519.com.cn`,
+      'MT-V' : `c6fc4b6638560a05a986f99fd74`,
+      'MT-User-Tag' : `0`,
+      'MT-Token' : $.token,
+      'MT-Device-ID' : $.deviceId,
+      'Connection' : `keep-alive`,
+      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+      'MT-Team-ID' : ``,
+      'Content-Type' : `application/json`,
+      'MT-APP-Version' : $.version,
+      'User-Agent' : $.userAgent,
+      'MT-R' : $.mtR,
+      'MT-Bundle-ID' : `com.moutai.mall`,
+      'MT-Network-Type' : ``,
+      'Accept' : `*/*`
+    }
+  }
+  debug(opt)
+  return new Promise(resolve =>{
+    $.get(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        $.log(`申购查询结果:${$.toStr(response)}`);
+        if(result.code == 2000){
+          reservationItems = result.data.reservationItemVOS;
+          reservationItems.forEach(item=>{
+            if(item.status == 1){
+              $.msg($.name,`⛔️ ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')}申购的${item.itemName}失败了!`);
+            }else{
+              $.msg($.name, `🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
+            }
+          })
+        }
+
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+
+}
+
+function debug(content, title = "debug") {
+  let start = `\n----- ${title} -----\n`;
+  let end = `\n----- ${$.time('HH:mm:ss')} -----\n`;
+  if ($.is_debug === 'true') {
+    if (typeof content == "string") {
+      console.log(start + content + end);
+    } else if (typeof content == "object") {
+      console.log(start + $.toStr(content) + end);
+    }
+  }
+}
 
 
 // prettier-ignore
