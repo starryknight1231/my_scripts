@@ -12,6 +12,8 @@
 hostname = app.moutai519.com.cn
 */
 
+const { version } = require("os");
+
 const $ = new Env('i茅台');
 
 
@@ -26,6 +28,7 @@ $.deviceId = $.getdata('MT_DEVICE_ID') || '';
 $.version = $.getdata('MT_VERSION') || '1.5.9';
 $.userAgent = $.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = $.getdata('MT_R') || '';
+$.userId = $.getdata('MT_USERID') || '';
 $.is_debug = $.getdata('is_debug') || 'true';
 
 // 主函数
@@ -77,27 +80,29 @@ function GetCookie() {
         $.setdata(new_Device_ID, 'MT_DEVICE_ID');
         $.msg($.name, `🎉 Token获取成功`, `${new_Device_ID + ',' + new_MT_Token}`);
       } else {
-        $.log(`无需更新 MT-Token:\n${new_Device_ID + ',' + new_MT_Token}\n`);
+        $.log(`无需更新 MT-Token: [${new_Device_ID + ',' + new_MT_Token}]`);
       }
     }
     if ($request.headers['MT-APP-Version'] || $request.headers['mt-app-version']) {
-      $.MT_VERSION = $request.headers['MT-APP-Version'] || $request.headers['mt-app-version'];
+      var version = $request.headers['MT-APP-Version'] || $request.headers['mt-app-version'];
       $.setdata($.MT_VERSION, `MT_VERSION`);
-      $.log(`🎉 MT_VERSION 写入成功:\n${$.MT_VERSION}\n`);
+      $.log(`MT_VERSION 写入成功: [${version}]`);
     }
     if ($request.headers['User-Agent'] || $request.headers['user-agent']) {
-      $.MT_USERAGENT = $request.headers['User-Agent'] || $request.headers['user-agent'];
-      $.setdata($.MT_USERAGENT, `MT_USERAGENT`);
-      $.log(`🎉 MT_USERAGENT 写入成功:\n${$.MT_USERAGENT}\n`);
+      var userAgent = $request.headers['User-Agent'] || $request.headers['user-agent'];
+      $.setdata(userAgent, `MT_USERAGENT`);
+      $.log(`MT_USERAGENT 写入成功: [${userAgent}]`);
     }
     if ($request.headers['MT-R'] || $request.headers['mt-r']) {
-      $.MT_R = $request.headers['MT-R'] || $request.headers['mt-r'];
-      $.setdata($.MT_R, `MT_R`);
-      $.log(`🎉 MT_R 写入成功:\n${$.MT_R}\n`);
+      var mtR = $request.headers['MT-R'] || $request.headers['mt-r'];
+      $.setdata(mtR, `MT_R`);
+      $.log(`MT_R 写入成功: [${mtR}]`);
     }
   }
   if ($response && $response.body) {
-    $.log(response.body)
+    var userId = $.toObj($response.body).data.userId;
+    $.setdata(userId,`MT_USERID`)
+    $.log(`MT_USERID 写入成功：[${userId}]` )
   }
 }
 
