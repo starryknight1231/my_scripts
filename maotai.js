@@ -19,7 +19,7 @@ const $ = new Env('i茅台');
 
 const AES_KEY = 'qbhajinldepmucsonaaaccgypwuvcjaa'
 const AES_IV = '2018534749963515'
-const ITEM_CODES = ['10942'];   //需要预约的商品(默认只预约2个赚钱的茅子)
+const ITEM_CODES = ['10941','10942','10056'];   //需要预约的商品(默认只预约2个赚钱的茅子)
 $.userId = $.getdata('MT_USERID') || '1127167118';
 $.token = $.getdata('MT_TOKEN') || '';
 $.deviceId = $.getdata('MT_DEVICE_ID') || '';
@@ -27,6 +27,9 @@ $.version = $.getdata('MT_VERSION') || '1.5.9';
 $.userAgent = $.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = $.getdata('MT_R') || '';
 $.is_debug = $.getdata('is_debug') || 'true';
+
+$.lat = $.getdata('MT_LAT') || '19.940231';
+$.lng = $.getdata('MT_LNG') || '110.477477';
 
 // 主函数
 function main(){
@@ -40,29 +43,96 @@ function main(){
         return;
       }
 
+      // 
+      await getShopMap();
   
       // 如果当前时间是早上9点到10点
       if(isBetween9And10AM()){
-        for (let item of ITEM_CODES) {
-          $.log(`进行申购: ${item}`)
-          // 获取今日sessionId 
-          await getTodaySessionId();
-          await doApply(item,"246460102001");// 进行申购
+         // 获取今日sessionId 
+        //await getTodaySessionId();
 
-          //var maxShopId = await getLocationCount();
-        }
+        // for (let item of ITEM_CODES) {
+        //   $.log(`进行申购: ${item}`)
+         
+        //   await doApply(item,"246460102001");// 进行申购
+
+        //   //var maxShopId = await getLocationCount();
+        // }
       }else if(isAfter6PM()){
         await doQueryApplyResult();  // 查询申购结果
       }else{
         $.log(`⛔️ 当前时间暂无任务可以执行`);
       }
-
-
-
     }
   })()
       .catch((e) => $.logErr(e))
       .finally(() => $.done());
+}
+
+// 获取商家列表
+async function getShopMap(){
+  
+
+      // url = ''
+      // headers = {
+      //     'X-Requested-With': 'XMLHttpRequest',
+      //     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0_1 like Mac OS X)',
+      //     'Referer': 'https://h5.moutai519.com.cn/gux/game/main?appConfig=2_1_2',
+      //     'Client-User-Agent': 'iOS;16.0.1;Apple;iPhone 14 ProMax',
+      //     'MT-R': 'clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==',
+      //     'Origin': 'https://h5.moutai519.com.cn',
+      //     'MT-APP-Version': mt_version,
+      //     'MT-Request-ID': f'{int(time.time() * 1000)}{random.randint(1111111, 999999999)}{int(time.time() * 1000)}',
+      //     'Accept-Language': 'zh-CN,zh-Hans;q=1',
+      //     'MT-Device-ID': f'{int(time.time() * 1000)}{random.randint(1111111, 999999999)}{int(time.time() * 1000)}',
+      //     'Accept': 'application/json, text/javascript, */*; q=0.01',
+      //     'mt-lng': f'{lng}',
+      //     'mt-lat': f'{lat}'
+      // }
+
+  let opt = {
+    url: `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/resource/get`,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'User-Agent' : $.userAgent,
+      'MT-R' : $.mtR,
+      'MT-APP-Version' : $.version,
+      'MT-Device-ID' : $.deviceId,
+      'Accept-Encoding' : `gzip, deflate, br`,
+      'Host' : `app.moutai519.com.cn`,
+      'MT-User-Tag' : `0`,
+      'MT-Token' : $.token,
+      'MT-LNG': $.lng,
+      'MT-LAT': $.lat,
+      'Connection' : `keep-alive`,
+      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+      'MT-Team-ID' : ``,
+      'Content-Type' : `application/json`,
+      'MT-Bundle-ID' : `com.moutai.mall`,
+      'MT-Network-Type' : `WIFI`,
+      'Accept' : `*/*`
+    },
+  }
+  return new Promise(resolve =>{
+    $.get(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        debug(result);
+        if(result.code == 2000){
+         
+        }else{
+         
+        }
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+
+
 }
 
 // 获取ck信息
@@ -200,7 +270,7 @@ async function doApply(itemId,shopId){
       'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
       'Accept-Encoding' : `gzip, deflate, br`,
       'Host' : `app.moutai519.com.cn`,
-      'MT-V' : `c6fc4b6638560a05a986f99fd74`,
+      // 'MT-V' : `c6fc4b6638560a05a986f99fd74`,
       'MT-User-Tag' : `0`,
       'MT-Token' : $.token,
       'MT-Device-ID' : $.deviceId,
@@ -212,11 +282,10 @@ async function doApply(itemId,shopId){
       'User-Agent' : $.userAgent,
       'MT-R' : $.mtR,
       'MT-Bundle-ID' : `com.moutai.mall`,
-      'MT-Network-Type' : ``,
+      'MT-Network-Type' : `WIFI`,
       'Accept' : `*/*`
     },
     body: JSON.stringify(body)
-    // body: `{"actParam":"IdiwwdtRdEBhdeHkaJbq1J59r8j5hLj3e34vWmtgR3vQsJT0lPVLyPSppdwcZRO309DgSiJUrQ2XSUZAYrkZHiZSFc1A3JYV5GglhKjPWFHdXEX0Ngfx+m\/8NzdST2EWCciaQTqfrETuTPvWMzRmDA==","itemInfoList":[{"count":1,"itemId":"10941"}],"shopId":"246460102001","sessionId":981}`
   }
   debug(opt)
   return new Promise(resolve =>{
@@ -291,6 +360,13 @@ async function doQueryApplyResult(){
     })
   })
 
+}
+
+// 生成请求ID
+function generateRequestId() {
+  var timestamp = new Date().getTime();
+  var randomPart = Math.floor(Math.random() * (999999999 - 1111111) + 1111111);
+  return timestamp.toString() + randomPart.toString() + timestamp.toString();
 }
 
 function debug(content, title = "debug") {
