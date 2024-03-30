@@ -19,7 +19,7 @@ const $ = new Env('i茅台');
 
 const AES_KEY = 'qbhajinldepmucsonaaaccgypwuvcjaa'
 const AES_IV = '2018534749963515'
-const ITEM_CODES = ['10941', '10942'];   //需要预约的商品(默认只预约2个赚钱的茅子)
+const ITEM_CODES = ['10941'];   //需要预约的商品(默认只预约2个赚钱的茅子)
 $.userId = $.getdata('MT_USERID') || '1127167118';
 $.token = $.getdata('MT_TOKEN') || '';
 $.deviceId = $.getdata('MT_DEVICE_ID') || '';
@@ -40,26 +40,24 @@ function main(){
         return;
       }
 
-      for (let item of ITEM_CODES) {
-        // 获取今日sessionId 
-        await getTodaySessionId();
-        await doApply(item,"246460102001");// 进行申购
-        //var maxShopId = await getLocationCount();
+  
+      // 如果当前时间是早上9点到10点
+      if(isBetween9And10AM()){
+        for (let item of ITEM_CODES) {
+          $.log(`进行申购: ${item}`)
+          // 获取今日sessionId 
+          await getTodaySessionId();
+          await doApply(item,"246460102001");// 进行申购
+
+          //var maxShopId = await getLocationCount();
+        }
+      }else if(isAfter6PM()){
+        await doQueryApplyResult();  // 查询申购结果
+      }else{
+        $.log(`⛔️ 当前时间暂无任务可以执行`);
       }
 
 
-      // // 如果当前时间是早上9点到10点
-      // if(isBetween9And10AM()){
-      //   //await doApply10941();  // 进行申购龙年茅台
-      // }else if(isAfter6PM()){
-      //   //await doQueryApplyResult();  // 查询申购结果
-      // }else{
-      //   $.log(`⛔️ 当前时间暂无任务可以执行`);
-      // }
-
-
-      //var params = JSON.stringify({"itemInfoList":[{"count":1,"itemId":"10941"}],"sessionId":982,"userId":"1127167118","shopId":"246460102001"});
-      //var result = aes_encrypt(params,AES_KEY,AES_IV);
 
     }
   })()
@@ -192,7 +190,9 @@ async function doApply(itemId,shopId){
   }
 
   debug(body);
-  body.actParam = aes_encrypt(body.itemList,AES_KEY,AES_IV);
+  body.actParam = aes_encrypt(body,AES_KEY,AES_IV);
+
+  
 
   let opt = {
     url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
