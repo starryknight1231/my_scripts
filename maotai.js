@@ -126,12 +126,12 @@ async function loadShopInfo(url){
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        debug(result);
-        if(result.code == 2000){
-         
-        }else{
-         $.logErr(`获取${provinceName} ${cityName}商铺信息失败`)
-        }
+        const filteredShopIds = Object.keys(result).filter(shopId => {
+          return data[shopId].provinceName === $.provinceName && data[shopId].cityName === $.cityName;
+        });
+
+        $.log(filteredShopIds)
+
       } catch (error) {
         $.log(error);
       } finally {
