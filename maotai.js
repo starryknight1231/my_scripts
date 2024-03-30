@@ -131,7 +131,8 @@ async function loadShopInfo(url){
         });
 
         $.log(filteredShopIds)
-
+        $.shops = filteredShopIds;
+        $.setdata(filteredShopIds, `MT_SHOPS`);
       } catch (error) {
         $.log(error);
       } finally {
