@@ -71,24 +71,6 @@ function main(){
 
 // 获取商家列表
 async function getShopMap(){
-  
-
-      // url = ''
-      // headers = {
-      //     'X-Requested-With': 'XMLHttpRequest',
-      //     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0_1 like Mac OS X)',
-      //     'Referer': 'https://h5.moutai519.com.cn/gux/game/main?appConfig=2_1_2',
-      //     'Client-User-Agent': 'iOS;16.0.1;Apple;iPhone 14 ProMax',
-      //     'MT-R': 'clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==',
-      //     'Origin': 'https://h5.moutai519.com.cn',
-      //     'MT-APP-Version': mt_version,
-      //     'MT-Request-ID': f'{int(time.time() * 1000)}{random.randint(1111111, 999999999)}{int(time.time() * 1000)}',
-      //     'Accept-Language': 'zh-CN,zh-Hans;q=1',
-      //     'MT-Device-ID': f'{int(time.time() * 1000)}{random.randint(1111111, 999999999)}{int(time.time() * 1000)}',
-      //     'Accept': 'application/json, text/javascript, */*; q=0.01',
-      //     'mt-lng': f'{lng}',
-      //     'mt-lat': f'{lat}'
-      // }
   var requestId = generateRequestId();
   let opt = {
     url: `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/resource/get`,
@@ -115,9 +97,9 @@ async function getShopMap(){
         let result = $.toObj(data) || response;
         debug(result);
         if(result.code == 2000){
-         
+         $.log(result.data.mtshops_pc.url);
         }else{
-         
+         $.logErr(`获取茅台资源失败`)
         }
       } catch (error) {
         $.log(error);
