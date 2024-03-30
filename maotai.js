@@ -60,7 +60,7 @@ function main(){
         //await getTodaySessionId();
 
         // 开始抽取设置的商品
-        await applyWithDelay(10)
+        await applyItemsWithDelay(10)
       }else if(isAfter6PM()){
         //await doQueryApplyResult();  // 查询申购结果
       }else{
@@ -73,18 +73,21 @@ function main(){
 }
 
 // 延迟申购
-async function applyWithDelay(sleepSeconds) {
-  for (let item of ITEM_CODES) {
-    var shopId = getRandomShop();
-    $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
-    //await doApply(item, shopId); // 进行申购
-    await delay(sleepSeconds * 1000); // 等待10秒
+  async function applyItemsWithDelay(sleepSeconds) {
+    for (let i = 0; i < ITEM_CODES.length; i++) {
+      var shopId = getRandomShop();
+      var item = ITEM_CODES[i];
+      $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
+      //await doApply(item, shopId); // 进行申购
+      if (i < ITEM_CODES.length - 1) {
+        await delay(sleepSeconds * 1000); // 等待10秒
+      }
+    }
   }
-}
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+  
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
 // 获取商家列表
 async function refreshShopInfo(){
