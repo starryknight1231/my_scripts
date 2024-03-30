@@ -49,22 +49,22 @@ function main(){
         return;
       }
 
-      // 
-      $.log($.shops);
-      await refreshShopInfo();
-  
       // 如果当前时间是早上9点到10点
-      if(isBetween9And10AM()){
-         // 获取今日sessionId 
+      // if(isBetween9And10AM()){
+        if(true){
+
+        // 刷新商铺信息
+        await refreshShopInfo();
+
+        // 获取今日sessionId 
         //await getTodaySessionId();
 
-        // for (let item of ITEM_CODES) {
-        //   $.log(`进行申购: ${item}`)
-         
-        //   await doApply(item,"246460102001");// 进行申购
-
-        //   //var maxShopId = await getLocationCount();
-        // }
+        // 开始抽取设置的商品
+        for (let item of ITEM_CODES) {
+          var shopId = getRandomShop();
+          $.log(`进行申购: ${item} 商铺ID为：${shopId}`)
+          //await doApply(item,shopId);// 进行申购
+        }
       }else if(isAfter6PM()){
         //await doQueryApplyResult();  // 查询申购结果
       }else{
@@ -103,12 +103,14 @@ async function refreshShopInfo(){
         err && $.log(err);
         let result = $.toObj(data) || response;
         if(result.code == 2000){
-          //if($.mtshopsUrl !== result.data.mtshops_pc.url){
+          if($.mtshopsUrl !== result.data.mtshops_pc.url){
             $.mtshopsUrl =  result.data.mtshops_pc.url;
             $.setdata( $.mtshopsUrl, 'MT_SHOPS_URL');
             $.log(`茅台商铺信息更新: ${$.mtshopsUrl}`);
             await loadShopInfo($.mtshopsUrl);
-          //}
+          }else{
+            $.log(`茅台商铺信息未更新: ${$.shops}`);
+          }
         }else{
          $.logErr(`获取茅台资源失败`)
         }
@@ -121,6 +123,7 @@ async function refreshShopInfo(){
   })
 }
 
+// 加载商家信息
 async function loadShopInfo(url){
   return new Promise(resolve =>{
     $.get({url},async (err, response, data) => {
@@ -141,6 +144,15 @@ async function loadShopInfo(url){
       }
     })
   })
+}
+
+// 随机抽取一个商家
+function getRandomShop() {
+  // 将逗号分隔的字符串转换为数组
+  const array = $.shops.split(',');
+  // 随机抽取一个元素
+  const randomShop = array[Math.floor(Math.random() * array.length)];
+  return randomShop;
 }
 
 // 获取ck信息
@@ -260,6 +272,7 @@ function aes_decrypt(content,key,iv) {
 
 // 执行申购操作
 async function doApply(itemId,shopId){
+
   let body = {
     itemInfoList: [{"count":1,"itemId":itemId}],
     "shopId":shopId,
