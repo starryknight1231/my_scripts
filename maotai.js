@@ -220,7 +220,6 @@ async function doApply(itemId,shopId){
   }
   debug(opt)
   return new Promise(resolve =>{
-    resolve()
     $.post(opt,async (err, response, data) => {
       try {
         err && $.log(err);
