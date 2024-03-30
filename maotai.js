@@ -60,7 +60,7 @@ function main(){
         //await getTodaySessionId();
 
         // 开始抽取设置的商品
-        applyWithDelay(10)
+        await applyWithDelay(10)
       }else if(isAfter6PM()){
         //await doQueryApplyResult();  // 查询申购结果
       }else{
