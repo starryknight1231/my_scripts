@@ -127,7 +127,7 @@ async function loadShopInfo(url){
         err && $.log(err);
         let result = $.toObj(data) || response;
         const filteredShopIds = Object.keys(result).filter(shopId => {
-          return data[shopId].provinceName === $.provinceName && data[shopId].cityName === $.cityName;
+          return result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName;
         });
 
         $.log(filteredShopIds)
