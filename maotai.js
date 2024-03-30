@@ -185,12 +185,14 @@ function aes_decrypt(content,key,iv) {
 // 执行申购操作
 async function doApply(itemId,shopId){
   let body = {
-    actParam: null,
-    itemList: [{"count":1,"itemId":itemId}],"shopId":shopId,"sessionId":$.todaySessionId,"userId":$.userId
+    itemList: [{"count":1,"itemId":itemId}],
+    "shopId":shopId,
+    "sessionId":$.todaySessionId,
+    "userId":$.userId
   }
 
-  debug(body.itemList);
-  body.actParam = aes_encrypt(d.itemList,AES_KEY,AES_IV);
+  debug(body);
+  body.actParam = aes_encrypt(body.itemList,AES_KEY,AES_IV);
 
   let opt = {
     url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
