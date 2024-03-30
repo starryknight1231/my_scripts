@@ -226,7 +226,7 @@ async function doApply(itemId,shopId){
         let result = $.toObj(data) || response;
         $.log(`申购结果：${$.toStr(result)}`);
         if(result.code == 2000){
-          $.msg($.name,`✅ ${result.data.successDesc}!`);
+          $.msg($.name,`申购成功`,`✅ ${result.data.successDesc}!`);
         }else{
           $.msg($.name,`⛔️ 申购失败！`);
         }
