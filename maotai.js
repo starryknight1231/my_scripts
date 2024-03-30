@@ -34,8 +34,9 @@ $.mtshopsUrl = $.getdata('MT_SHOPS_URL') || '';
 
 $.provinceName = $.getdata('MT_PROVINCE_NAME') || '海南省';
 $.cityName = $.getdata('MT_CITY_NAME') || '海口市';
-$.shops = $.getdata('MT_SHOPS') || [];
+$.shops = $.getdata('MT_SHOPS') || '';
 
+$.log($.shops);
 // 主函数
 function main(){
   !(async () => {
@@ -100,7 +101,6 @@ async function refreshShopInfo(){
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        debug(result);
         if(result.code == 2000){
           //if($.mtshopsUrl !== result.data.mtshops_pc.url){
             $.mtshopsUrl =  result.data.mtshops_pc.url;
@@ -128,7 +128,7 @@ async function loadShopInfo(url){
         let result = $.toObj(data) || response;
         const filteredShopIds = Object.keys(result).filter(shopId => {
           return result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName;
-        });
+        }).join(',');
 
         $.log(filteredShopIds)
         $.shops = filteredShopIds;
