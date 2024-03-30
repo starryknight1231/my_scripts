@@ -59,7 +59,7 @@ function main(){
         //   //var maxShopId = await getLocationCount();
         // }
       }else if(isAfter6PM()){
-        await doQueryApplyResult();  // 查询申购结果
+        //await doQueryApplyResult();  // 查询申购结果
       }else{
         $.log(`⛔️ 当前时间暂无任务可以执行`);
       }
@@ -89,22 +89,24 @@ async function getShopMap(){
       //     'mt-lng': f'{lng}',
       //     'mt-lat': f'{lat}'
       // }
-
+  var requestId = generateRequestId();
   let opt = {
     url: `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/resource/get`,
     headers: {
-      'User-Agent' : $.userAgent,
-      'Accept-Encoding' : `gzip, deflate, br`,
-      'Host' : `app.moutai519.com.cn`,
-      'MT-User-Tag' : `0`,
-      'Connection' : `keep-alive`,
-      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
-      'MT-Team-ID' : ``,
-      'Content-Type' : `application/json`,
-      'MT-Bundle-ID' : `com.moutai.mall`,
-      'MT-Network-Type' : `WIFI`,
-      'Accept' : `*/*`
-    },
+      'X-Requested-With': 'XMLHttpRequest',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0_1 like Mac OS X)',
+        'Referer': 'https://h5.moutai519.com.cn/gux/game/main?appConfig=2_1_2',
+        'Client-User-Agent': 'iOS;16.0.1;Apple;iPhone 14 ProMax',
+        'MT-R': 'clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==',
+        'Origin': 'https://h5.moutai519.com.cn',
+        'MT-APP-Version': $.version,
+        'MT-Request-ID': requestId,
+        'Accept-Language': 'zh-CN,zh-Hans;q=1',
+        'MT-Device-ID': $.deviceId,
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'mt-lng': $.lng,
+        'mt-lat': $.lat
+    }
   }
   return new Promise(resolve =>{
     $.get(opt,async (err, response, data) => {
