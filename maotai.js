@@ -50,19 +50,17 @@ function main(){
       }
 
       // 如果当前时间是早上9点到10点
-      // if(isBetween9And10AM()){
-        if(true){
-
+      if(isBetween9And10AM()){
         // 刷新商铺信息
         await refreshShopInfo();
 
         // 获取今日sessionId 
-        //await getTodaySessionId();
+        await getTodaySessionId();
 
         // 开始抽取设置的商品
         await applyItemsWithDelay(10)
       }else if(isAfter6PM()){
-        //await doQueryApplyResult();  // 查询申购结果
+        await doQueryApplyResult();  // 查询申购结果
       }else{
         $.log(`⛔️ 当前时间暂无任务可以执行`);
       }
@@ -78,7 +76,7 @@ function main(){
       var shopId = getRandomShop();
       var item = ITEM_CODES[i];
       $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
-      //await doApply(item, shopId); // 进行申购
+      await doApply(item, shopId); // 进行申购
       if (i < ITEM_CODES.length - 1) {
         await delay(sleepSeconds * 1000); // 等待10秒
       }
@@ -121,8 +119,6 @@ async function refreshShopInfo(){
             $.setdata( $.mtshopsUrl, 'MT_SHOPS_URL');
             $.log(`茅台商铺信息更新: ${$.mtshopsUrl}`);
             await loadShopInfo($.mtshopsUrl);
-          }else{
-            $.log(`茅台商铺信息未更新: ${$.shops}`);
           }
         }else{
          $.logErr(`获取茅台资源失败`)
@@ -146,8 +142,7 @@ async function loadShopInfo(url){
         const filteredShopIds = Object.keys(result).filter(shopId => {
           return result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName;
         }).join(',');
-
-        $.log(filteredShopIds)
+        
         $.shops = filteredShopIds;
         $.setdata(filteredShopIds, `MT_SHOPS`);
       } catch (error) {
