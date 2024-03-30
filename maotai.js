@@ -221,22 +221,22 @@ async function doApply(itemId,shopId){
   debug(opt)
   return new Promise(resolve =>{
     resolve()
-    // $.post(opt,async (err, response, data) => {
-    //   try {
-    //     err && $.log(err);
-    //     let result = $.toObj(data) || response;
-    //     $.log(`申购结果：${$.toStr(result)}`);
-    //     if(result.code == 2000){
-    //       $.msg($.name,`✅ ${result.data.successDesc}!`);
-    //     }else{
-    //       $.msg($.name,`⛔️ 申购失败！`);
-    //     }
-    //   } catch (error) {
-    //     $.log(error);
-    //   } finally {
-    //     resolve()
-    //   }
-    // })
+    $.post(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        $.log(`申购结果：${$.toStr(result)}`);
+        if(result.code == 2000){
+          $.msg($.name,`✅ ${result.data.successDesc}!`);
+        }else{
+          $.msg($.name,`⛔️ 申购失败！`);
+        }
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
   })
 
 }
