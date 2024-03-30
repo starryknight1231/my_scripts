@@ -183,7 +183,7 @@ function aes_decrypt(content,key,iv) {
 // 执行申购操作
 async function doApply(itemId,shopId){
   let body = {
-    itemList: [{"count":1,"itemId":itemId}],
+    itemInfoList: [{"count":1,"itemId":itemId}],
     "shopId":shopId,
     "sessionId":$.todaySessionId,
     "userId":$.userId
