@@ -36,7 +36,7 @@ $.provinceName = $.getdata('MT_PROVINCE_NAME') || '海南省';
 $.cityName = $.getdata('MT_CITY_NAME') || '海口市';
 $.shops = $.getdata('MT_SHOPS') || '';
 
-$.log($.shops);
+
 // 主函数
 function main(){
   !(async () => {
@@ -50,6 +50,7 @@ function main(){
       }
 
       // 
+      $.log($.shops);
       await refreshShopInfo();
   
       // 如果当前时间是早上9点到10点
