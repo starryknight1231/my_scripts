@@ -26,7 +26,6 @@ $.deviceId = $.getdata('MT_DEVICE_ID') || '';
 $.version = $.getdata('MT_VERSION') || '1.5.9';
 $.userAgent = $.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = $.getdata('MT_R') || '';
-$.userId = $.getdata('MT_USERID') || '';
 $.is_debug = $.getdata('is_debug') || 'true';
 
 // 主函数
@@ -187,9 +186,10 @@ function aes_decrypt(content,key,iv) {
 async function doApply(itemId,shopId){
   let body = {
     actParam: null,
-    itemList: [{"count":1,"itemId":itemId}],"shopId":shopId,"sessionId":$.todaySessionId
+    itemList: [{"count":1,"itemId":itemId}],"shopId":shopId,"sessionId":$.todaySessionId,"userId":$.userId
   }
 
+  debug(body.itemList);
   body.actParam = aes_encrypt(d.itemList,AES_KEY,AES_IV);
 
   let opt = {
