@@ -93,17 +93,10 @@ async function getShopMap(){
   let opt = {
     url: `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/resource/get`,
     headers: {
-      'X-Requested-With': 'XMLHttpRequest',
       'User-Agent' : $.userAgent,
-      'MT-R' : $.mtR,
-      'MT-APP-Version' : $.version,
-      'MT-Device-ID' : $.deviceId,
       'Accept-Encoding' : `gzip, deflate, br`,
       'Host' : `app.moutai519.com.cn`,
       'MT-User-Tag' : `0`,
-      'MT-Token' : $.token,
-      'MT-LNG': $.lng,
-      'MT-LAT': $.lat,
       'Connection' : `keep-alive`,
       'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
       'MT-Team-ID' : ``,
