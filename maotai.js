@@ -42,7 +42,10 @@ function main(){
       }
 
       for (let item of ITEM_CODES) {
-        var maxShopId = await getLocationCount();
+        // 获取今日sessionId 
+        await getTodaySessionId();
+        await doApply(item,"246460102001");// 进行申购
+        //var maxShopId = await getLocationCount();
       }
 
 
@@ -163,7 +166,7 @@ function isAfter6PM() {
  * @returns {string}
  */
 function aes_encrypt(content,key,iv) {
-  return String(CryptoJS.AES.encrypt(content, CryptoJS.enc.Utf8.parse(key), { iv: CryptoJS.enc.Utf8.parse(iv)}));
+  return String(CryptoJS.AES.encrypt(JSON.stringify(content), CryptoJS.enc.Utf8.parse(key), { iv: CryptoJS.enc.Utf8.parse(iv)}));
 }
 
 /**
@@ -181,7 +184,13 @@ function aes_decrypt(content,key,iv) {
 }
 
 // 执行申购操作
-async function doApply10941(){
+async function doApply(itemId,shopId){
+  let body = {
+    actParam: null,
+    itemList: [{"count":1,"itemId":itemId}],"shopId":shopId,"sessionId":$.todaySessionId
+  }
+
+  body.actParam = aes_encrypt(d.itemList,AES_KEY,AES_IV);
 
   let opt = {
     url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
@@ -204,26 +213,28 @@ async function doApply10941(){
       'MT-Network-Type' : ``,
       'Accept' : `*/*`
     },
-    body: `{"actParam":"IdiwwdtRdEBhdeHkaJbq1J59r8j5hLj3e34vWmtgR3vQsJT0lPVLyPSppdwcZRO309DgSiJUrQ2XSUZAYrkZHiZSFc1A3JYV5GglhKjPWFHdXEX0Ngfx+m\/8NzdST2EWCciaQTqfrETuTPvWMzRmDA==","itemInfoList":[{"count":1,"itemId":"10941"}],"shopId":"246460102001","sessionId":981}`
+    body: JSON.stringify(body)
+    // body: `{"actParam":"IdiwwdtRdEBhdeHkaJbq1J59r8j5hLj3e34vWmtgR3vQsJT0lPVLyPSppdwcZRO309DgSiJUrQ2XSUZAYrkZHiZSFc1A3JYV5GglhKjPWFHdXEX0Ngfx+m\/8NzdST2EWCciaQTqfrETuTPvWMzRmDA==","itemInfoList":[{"count":1,"itemId":"10941"}],"shopId":"246460102001","sessionId":981}`
   }
   debug(opt)
   return new Promise(resolve =>{
-    $.post(opt,async (err, response, data) => {
-      try {
-        err && $.log(err);
-        let result = $.toObj(data) || response;
-        $.log(`申购结果：${$.toStr(result)}`);
-        if(result.code == 2000){
-          $.msg($.name,`✅ ${result.data.successDesc}!`);
-        }else{
-          $.msg($.name,`⛔️ 申购失败！`);
-        }
-      } catch (error) {
-        $.log(error);
-      } finally {
-        resolve()
-      }
-    })
+    resolve()
+    // $.post(opt,async (err, response, data) => {
+    //   try {
+    //     err && $.log(err);
+    //     let result = $.toObj(data) || response;
+    //     $.log(`申购结果：${$.toStr(result)}`);
+    //     if(result.code == 2000){
+    //       $.msg($.name,`✅ ${result.data.successDesc}!`);
+    //     }else{
+    //       $.msg($.name,`⛔️ 申购失败！`);
+    //     }
+    //   } catch (error) {
+    //     $.log(error);
+    //   } finally {
+    //     resolve()
+    //   }
+    // })
   })
 
 }
