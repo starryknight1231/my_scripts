@@ -12,8 +12,6 @@
 hostname = app.moutai519.com.cn
 */
 
-const { version } = require("os");
-
 const $ = new Env('i茅台');
 
 
