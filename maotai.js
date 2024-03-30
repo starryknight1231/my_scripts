@@ -30,6 +30,11 @@ $.is_debug = $.getdata('is_debug') || 'true';
 
 $.lat = $.getdata('MT_LAT') || '19.940231';
 $.lng = $.getdata('MT_LNG') || '110.477477';
+$.mtshopsUrl = $.getdata('MT_SHOPS_URL') || '';
+
+$.provinceName = $.getdata('MT_PROVINCE_NAME') || '海南省';
+$.cityName = $.getdata('MT_CITY_NAME') || '海口市';
+$.shops = $.getdata('MT_SHOPS') || [];
 
 // 主函数
 function main(){
@@ -44,7 +49,7 @@ function main(){
       }
 
       // 
-      await getShopMap();
+      await refreshShopInfo();
   
       // 如果当前时间是早上9点到10点
       if(isBetween9And10AM()){
@@ -70,7 +75,7 @@ function main(){
 }
 
 // 获取商家列表
-async function getShopMap(){
+async function refreshShopInfo(){
   var requestId = generateRequestId();
   let opt = {
     url: `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/resource/get`,
@@ -97,7 +102,12 @@ async function getShopMap(){
         let result = $.toObj(data) || response;
         debug(result);
         if(result.code == 2000){
-         $.log(result.data.mtshops_pc.url);
+          //if($.mtshopsUrl !== result.data.mtshops_pc.url){
+            $.mtshopsUrl =  result.data.mtshops_pc.url;
+            $.setdata( $.mtshopsUrl, 'MT_SHOPS_URL');
+            $.log(`茅台商铺信息更新: ${$.mtshopsUrl}`);
+            await loadShopInfo($.mtshopsUrl);
+          //}
         }else{
          $.logErr(`获取茅台资源失败`)
         }
@@ -108,8 +118,27 @@ async function getShopMap(){
       }
     })
   })
+}
 
-
+async function loadShopInfo(url){
+  return new Promise(resolve =>{
+    $.get({url},async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        debug(result);
+        if(result.code == 2000){
+         
+        }else{
+         $.logErr(`获取${provinceName} ${cityName}商铺信息失败`)
+        }
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
 }
 
 // 获取ck信息
