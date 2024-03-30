@@ -97,7 +97,7 @@ async function getShopMap(){
         let result = $.toObj(data) || response;
         debug(result);
         if(result.code == 2000){
-         $.log(result.data.mtshops_pc);
+         $.log($.toStr(result.data.mtshops_pc));
         }else{
          $.logErr(`获取茅台资源失败`)
         }
