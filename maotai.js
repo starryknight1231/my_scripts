@@ -157,7 +157,7 @@ async function getRandomShop(productId) {
   let today = new Date(); // 获取当前日期时间
   today.setHours(0, 0, 0, 0); // 将时间设置为午夜（零点）
   const dayTime = today.getTime();
-  let url = encodeURIComponent(`https://static.moutai519.com.cn/mt-backend/xhr/front/mall/shop/list/slim/v3/${$.todaySessionId}/${$.provinceName}/${productId}/${dayTime}`);
+  let url = `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/shop/list/slim/v3/${$.todaySessionId}/${encodeURIComponent($.provinceName)}/${productId}/${dayTime}`;
   $.log(url);
   return new Promise(resolve =>{
     $.get({url},async (err, response, data) => {
