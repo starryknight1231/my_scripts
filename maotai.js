@@ -157,7 +157,8 @@ async function getRandomShop(productId) {
   let today = new Date(); // 获取当前日期时间
   today.setHours(0, 0, 0, 0); // 将时间设置为午夜（零点）
   const dayTime = today.getTime();
-  let url = `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/shop/list/slim/v3/${$.todaySessionId}/${$.provinceName}/${productId}/${dayTime}`
+  let url = encodeURIComponent(`https://static.moutai519.com.cn/mt-backend/xhr/front/mall/shop/list/slim/v3/${$.todaySessionId}/${$.provinceName}/${productId}/${dayTime}`);
+  $.log(url);
   return new Promise(resolve =>{
     $.get({url},async (err, response, data) => {
       try {
@@ -178,13 +179,6 @@ async function getRandomShop(productId) {
       }
     })
   })
-
-
-  // 将逗号分隔的字符串转换为数组
-  const array = $.shops.split(',');
-  // 随机抽取一个元素
-  const randomShop = array[Math.floor(Math.random() * array.length)];
-  return randomShop;
 }
 
 // 获取ck信息
