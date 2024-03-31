@@ -50,10 +50,8 @@ function main(){
       }
 
       // 如果当前时间是早上9点到10点
-      if(isBetween9And10AM()){
-        // 刷新商铺信息
-        await refreshShopInfo();
-
+      // if(isBetween9And10AM()){
+        if(true){
         // 获取今日sessionId 
         await getTodaySessionId();
 
@@ -73,10 +71,10 @@ function main(){
 // 延迟申购
   async function applyItemsWithDelay(sleepSeconds) {
     for (let i = 0; i < ITEM_CODES.length; i++) {
-      var shopId = getRandomShop();
       var item = ITEM_CODES[i];
+      var shopId = await getRandomShop(item);
       $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
-      await doApply(item, shopId); // 进行申购
+      //await doApply(item, shopId); // 进行申购
       if (i < ITEM_CODES.length - 1) {
         await delay(sleepSeconds * 1000); // 等待10秒
       }
@@ -155,7 +153,33 @@ async function loadShopInfo(url){
 }
 
 // 随机抽取一个商家
-function getRandomShop() {
+async function getRandomShop(productId) {
+  let today = new Date(); // 获取当前日期时间
+  today.setHours(0, 0, 0, 0); // 将时间设置为午夜（零点）
+  const dayTime = today.getTime();
+  let url = `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/shop/list/slim/v3/${$.todaySessionId}/${$.provinceName}/${productId}/${dayTime}`
+  return new Promise(resolve =>{
+    $.get({url},async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        if(result.code == 2000){
+          var shops = result.data.shops;
+          const randomIndex = Math.floor(Math.random() * shops.length);
+          resolve(shops[randomIndex].shopId);
+        }else{
+          $.logErr(result);
+          $.msg($.name,`⛔️ 随机获取商家失败！`);
+        }
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+
+
   // 将逗号分隔的字符串转换为数组
   const array = $.shops.split(',');
   // 随机抽取一个元素
