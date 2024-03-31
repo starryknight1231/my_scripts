@@ -50,8 +50,8 @@ function main(){
       }
 
       // 如果当前时间是早上9点到10点
-      // if(isBetween9And10AM()){
-        if(true){
+      if(isBetween9And10AM()){
+      
         // 获取今日sessionId 
         await getTodaySessionId();
 
