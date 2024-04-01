@@ -74,7 +74,7 @@ function main(){
       var item = ITEM_CODES[i];
       var shopId = await getRandomShop(item);
       $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
-      //await doApply(item, shopId); // 进行申购
+      await doApply(item, shopId); // 进行申购
       if (i < ITEM_CODES.length - 1) {
         await delay(sleepSeconds * 1000); // 等待10秒
       }
