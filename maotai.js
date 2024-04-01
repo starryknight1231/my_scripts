@@ -26,7 +26,7 @@ $.deviceId = $.getdata('MT_DEVICE_ID') || '';
 $.version = $.getdata('MT_VERSION') || '1.5.9';
 $.userAgent = $.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = $.getdata('MT_R') || '';
-$.is_debug = $.getdata('is_debug') || 'true';
+$.is_debug = $.getdata('is_debug') || 'false';
 
 $.lat = $.getdata('MT_LAT') || '19.940231';
 $.lng = $.getdata('MT_LNG') || '110.477477';
@@ -62,7 +62,9 @@ function main(){
       // }else{
       //   $.log(`⛔️ 当前时间暂无任务可以执行`);
       // }
-      await doQueryApplyResult();
+      
+      //获取耐力值
+      await doGetUserEnergyAward()
     }
   })()
       .catch((e) => $.logErr(e))
@@ -232,7 +234,7 @@ async function getTodaySessionId(){
         err && $.log(err);
         let result = $.toObj(data) || response;
         if(result.code == 2000){
-          $.log(`当日 sessionId 获取成功: ${result.data.sessionId}`)
+          $.log(`获取 当日 sessionId 成功: ${result.data.sessionId}`)
           $.todaySessionId = result.data.sessionId;
         }else{
           $.logErr(result);
@@ -308,8 +310,6 @@ async function doApply(itemId,shopId){
 
   body.actParam = aes_encrypt(body,AES_KEY,AES_IV);
 
-  
-
   let opt = {
     url: `https://app.moutai519.com.cn/xhr/front/mall/reservation/add`,
     headers: {
@@ -338,9 +338,9 @@ async function doApply(itemId,shopId){
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        $.log(`申购结果：${$.toStr(result)}`);
+        debug(`申购结果：${$.toStr(result)}`);
         if(result.code == 2000){
-          $.msg($.name,`申购成功`,`✅ ${result.data.successDesc}!`);
+          $.msg($.name,``,`✅ ${result.data.successDesc}!`);
         }else{
           $.msg($.name,`⛔️ 申购失败！`);
         }
@@ -384,16 +384,15 @@ async function doQueryApplyResult(){
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        $.log(`\n----- 申购结果 -----\n`);
+        $.log(`\n----- 查询申购结果 -----\n`);
         if(result.code == 2000){
           reservationItems = result.data.reservationItemVOS.filter(obj => obj.status !== 1);
           
           reservationItems.forEach(item=>{
             if(item.status == 0){
               $.log(`${item.itemName} 未出结果`)
-              $.msg($.name,`申购成功` ,`🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
             }else{
-              $.msg($.name, `🎉 ${item.itemName}申购成功。`);
+              $.msg($.name,`` ,`🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
             }
           })
         }
@@ -406,6 +405,51 @@ async function doQueryApplyResult(){
     })
   })
 
+}
+
+// 获取耐力
+async function doGetUserEnergyAward(){
+  let opt = {
+    url: `https://h5.moutai519.com.cn/game/isolationPage/getUserEnergyAward`,
+    headers: {
+      'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
+      'Accept-Encoding' : `gzip, deflate, br`,
+      'Host' : `app.moutai519.com.cn`,
+      'MT-V' : `c6fc4b6638560a05a986f99fd74`,
+      'MT-User-Tag' : `0`,
+      'MT-Token' : $.token,
+      'MT-Device-ID' : $.deviceId,
+      'Connection' : `keep-alive`,
+      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+      'MT-Team-ID' : ``,
+      'Content-Type' : `application/json`,
+      'MT-APP-Version' : $.version,
+      'User-Agent' : $.userAgent,
+      'MT-R' : $.mtR,
+      'MT-Bundle-ID' : `com.moutai.mall`,
+      'MT-Network-Type' : ``,
+      'Accept' : `*/*`,
+      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`
+    }
+  }
+  $.log(opt)
+  return new Promise(resolve =>{
+    $.post(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        $.log(result)
+        if(result.code == 2000){
+          
+        }
+
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
 }
 
 // 生成请求ID
