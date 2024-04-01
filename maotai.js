@@ -26,7 +26,7 @@ $.deviceId = $.getdata('MT_DEVICE_ID') || '';
 $.version = $.getdata('MT_VERSION') || '1.5.9';
 $.userAgent = $.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = $.getdata('MT_R') || '';
-$.is_debug = $.getdata('is_debug') || 'false';
+$.is_debug = $.getdata('is_debug') || 'true';
 
 $.lat = $.getdata('MT_LAT') || '19.940231';
 $.lng = $.getdata('MT_LNG') || '110.477477';
@@ -338,7 +338,6 @@ async function doApply(itemId,shopId){
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        debug(`申购结果：${$.toStr(result)}`);
         if(result.code == 2000){
           $.msg($.name,``,`✅ ${result.data.successDesc}!`);
         }else{
@@ -432,13 +431,13 @@ async function doGetUserEnergyAward(){
       'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`
     }
   }
-  $.log(opt)
+  debug(opt)
   return new Promise(resolve =>{
     $.post(opt,async (err, response, data) => {
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        $.log(result)
+        debug(result)
         if(result.code == 2000){
           
         }
