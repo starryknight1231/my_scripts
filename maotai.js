@@ -386,12 +386,13 @@ async function doQueryApplyResult(){
         let result = $.toObj(data) || response;
         debug(`申购查询结果:${$.toStr(response)}`) ;
         if(result.code == 2000){
-          reservationItems = result.data.reservationItemVOS;
+          reservationItems = result.data.reservationItemVOS.filter(obj => obj.status !== 1);
+          
           reservationItems.forEach(item=>{
-            if(item.status == 1){
-              //$.msg($.name,`⛔️ ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')}申购的${item.itemName}失败了!`);
+            if(item.status == 0){
+              $.log(`[${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')}] [${item.itemName}] 未出结果`)
             }else{
-              //$.msg($.name, `🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
+              $.msg($.name, `🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
             }
           })
         }
