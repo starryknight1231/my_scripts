@@ -14,17 +14,18 @@ const $ = new Env('MT-小茅运');
 
 
 // 定义变量
-$.userId = $.getdata('MT_USERID') || '1127167118';
-$.token = $.getdata('MT_TOKEN') || '';
-$.deviceId = $.getdata('MT_DEVICE_ID') || '';
-$.version = $.getdata('MT_VERSION') || '1.5.9';
-$.userAgent = $.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
-$.mtR = $.getdata('MT_R') || '';
+$.userId = ($.isNode() ? process.env.MT_USERID : $.getdata('MT_USERID')) || '';
+$.token = ($.isNode() ? process.env.MT_TOKEN : $.getdata('MT_TOKEN')) || '';
+$.deviceId = ($.isNode() ? process.env.MT_DEVICE_ID : $.getdata('MT_DEVICE_ID')) || '';
+$.version = ($.isNode() ? process.env.MT_VERSION : $.getdata('MT_VERSION')) || '1.5.9';
+$.userAgent = ($.isNode() ? process.env.MT_USERAGENT : $.getdata('MT_USERAGENT')) || 'iOS;16.2;Apple;iPhone 12';
+$.mtR = ($.isNode() ? process.env.MT_R : $.getdata('MT_R')) || '';
 $.is_debug = $.getdata('is_debug') || 'true';
 
-$.lat = $.getdata('MT_LAT') || '19.940231';
-$.lng = $.getdata('MT_LNG') || '110.477477';
 
+$.userInfo = {}; //存放当前耐力和茅运信息
+$.mvInfo = {}; // 酿酒信息
+$.travelInfo = {}; //旅行信息
 
 
 // 主函数
@@ -39,8 +40,23 @@ function main(){
         return;
       }
 
+      // 获取用户信息
+      //await doGetUserInfo();
 
+      // 查询酿酒信息
+      //await doGetMwInfo();
 
+      // 尝试开始酿酒
+      //await doTryStartMw();
+
+      // 获取用户信息
+      await doGetUserInfo();
+       
+      // 查询旅行信息
+      await doGetTravelInfo();
+
+      // 尝试开始旅行
+      await doTryStartTravel();
     }
   })()
       .catch((e) => $.logErr(e))
@@ -86,33 +102,48 @@ function GetCookie() {
   }
 }
 
-// 获取耐力
-async function doGetUserEnergyAward(){
+// 生成请求ID
+function generateRequestId() {
+ return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0,
+        v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// 获取用户信息
+async function doGetUserInfo(){
   let opt = {
-    url: `https://h5.moutai519.com.cn/game/isolationPage/getUserEnergyAward`,
+    url: `https://h5.moutai519.com.cn/game/userinfo?__timestamp=${new Date().getTime()}&`,
     headers: {
-      'Host' : `app.moutai519.com.cn`,
+      'Host' : `h5.moutai519.com.cn`,
       'Accept' : `*/*`,
       'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
       'Accept-Encoding' : `gzip, deflate, br`,
       'Content-Type' : `application/json`,
       'MT-APP-Version' : $.version,
+      'MT-Device-ID': $.deviceId,
       'User-Agent' : $.userAgent,
-      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`
+      'Client-User-Agent':$.userAgent,
+      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+      'MT-R': $.mtR,
+      'x-csrf-token':'',
+      'MT-Request-ID': generateRequestId()
     }
   }
-  debug(opt)
+  debug(opt,"获取用户信息")
   return new Promise(resolve =>{
-    $.post(opt,async (err, response, data) => {
+    $.get(opt,async (err, response, data) => {
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
         if(result.code == 2000){
-          $.log(`获取耐力值成功：${$.toStr(result)}`)
+          $.userInfo = result.data;
+          $.log(`当前茅运：${$.userInfo.xiaomaoyun},耐力：${$.userInfo.energy}`)
         }else{
-          $.logErr(`获取耐力值失败：${result.message}`)
+          $.logErr(`获取个人信息失败：${result.message}`)
         }
-
+     
       } catch (error) {
         $.log(error);
       } finally {
@@ -121,6 +152,234 @@ async function doGetUserEnergyAward(){
     })
   })
 }
+
+// 查询酿酒信息
+async function doGetMwInfo(){
+  let opt = {
+    url: `https://h5.moutai519.com.cn/game/xmMw/getXmMwInfo?__timestamp=${new Date().getTime()}&`,
+    headers: {
+      'Host' : `h5.moutai519.com.cn`,
+      'Accept' : `*/*`,
+      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+      'Accept-Encoding' : `gzip, deflate, br`,
+      'Content-Type' : `application/json`,
+      'MT-APP-Version' : $.version,
+      'MT-Device-ID': $.deviceId,
+      'User-Agent' : $.userAgent,
+      'Client-User-Agent':$.userAgent,
+      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+      'MT-R': $.mtR,
+      'x-csrf-token':'',
+      'MT-Request-ID': generateRequestId()
+    }
+  }
+  return new Promise(resolve =>{
+    $.get(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        if(result.code == 2000){
+          $.mvInfo = result.data;
+        }else{
+          $.logErr(`获取酿酒信息失败：${result.message}`)
+        }
+     
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+}
+
+// 尝试开始酿酒
+async function doTryStartMw(){
+  return new Promise(resolve =>{
+      if($.mvInfo.remainMwCnt <= 0){
+        $.log(`今天酿酒次数已达上限`)
+        resolve();
+      }else if($.userInfo.energy < $.mvInfo.mwRequireEnergy){
+         $.log(`耐力不足，无法酿酒，当前耐力：${$.userInfo.energy}，所需耐力:${$.mvInfo.mwRequireEnergy}`)
+        resolve();
+      }else{
+        let opt = {
+          url: `https://h5.moutai519.com.cn/game/xmMw/startMw`,
+          headers: {
+            'Host' : `h5.moutai519.com.cn`,
+            'Accept' : `*/*`,
+            'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+            'Accept-Encoding' : `gzip, deflate, br`,
+            'Content-Type' : `application/json`,
+            'MT-APP-Version' : $.version,
+            'MT-Device-ID': $.deviceId,
+            'User-Agent' : $.userAgent,
+            'Client-User-Agent':$.userAgent,
+            'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+            'MT-R': $.mtR,
+            'x-csrf-token':'',
+            'MT-Request-ID': generateRequestId()
+          }
+      }
+      $.get(opt,async (err, response, data) => {
+        try {
+          err && $.log(err);
+          let result = $.toObj(data) || response;
+          debug(result,"尝试酿酒")
+          if(result.code == 2000){
+             $.log(`酿酒成功`);
+             // 尝试获取奖励
+             await doTryReceiveReward('xmMw');
+          }else{
+            $.logErr(`酿酒失败：${result.message}`)
+          }
+      
+        } catch (error) {
+          $.log(error);
+        } finally {
+          resolve()
+        }
+      })
+      }
+  })
+}
+
+// 尝试领取奖励
+async function doTryReceiveReward(type){
+  return new Promise(resolve =>{
+      let opt = {
+          url: `https://h5.moutai519.com.cn/game/${type}/receiveReward`,
+          headers: {
+            'Host' : `h5.moutai519.com.cn`,
+            'Accept' : `*/*`,
+            'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+            'Accept-Encoding' : `gzip, deflate, br`,
+            'Content-Type' : `application/json`,
+            'MT-APP-Version' : $.version,
+            'MT-Device-ID': $.deviceId,
+            'User-Agent' : $.userAgent,
+            'Client-User-Agent':$.userAgent,
+            'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+            'MT-R': $.mtR,
+            'x-csrf-token':'',
+            'MT-Request-ID': generateRequestId()
+          }
+      }
+      $.get(opt,async (err, response, data) => {
+        try {
+          err && $.log(err);
+          let result = $.toObj(data) || response;
+          debug(result,"尝试领取奖励")
+          if(result.code == 2000){
+             $.log(`领取奖励成功`);
+          }else{
+            $.logErr(`领取奖励失败：${result.message}`)
+          }
+      
+        } catch (error) {
+          $.log(error);
+        } finally {
+          resolve()
+        }
+      })
+  })
+}
+
+
+// 查询旅行信息
+async function doGetTravelInfo(){
+  let opt = {
+    url: `https://h5.moutai519.com.cn/game/xmTravel/getXmTravelInfo?__timestamp=${new Date().getTime()}&`,
+    headers: {
+      'Host' : `h5.moutai519.com.cn`,
+      'Accept' : `*/*`,
+      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+      'Accept-Encoding' : `gzip, deflate, br`,
+      'Content-Type' : `application/json`,
+      'MT-APP-Version' : $.version,
+      'MT-Device-ID': $.deviceId,
+      'User-Agent' : $.userAgent,
+      'Client-User-Agent':$.userAgent,
+      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+      'MT-R': $.mtR,
+      'x-csrf-token':'',
+      'MT-Request-ID': generateRequestId()
+    }
+  }
+  debug(opt,"查询旅行信息")
+  return new Promise(resolve =>{
+    $.get(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        if(result.code == 2000){
+          $.travelInfo = result.data;
+        }else{
+          $.logErr(`获取旅行信息失败：${result.message}`)
+        }
+     
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+}
+
+// 尝试开始旅行
+async function doTryStartTravel(){
+  return new Promise(resolve =>{
+      if($.travelInfo.remainTravelCnt <= 0){
+        $.log(`今天旅行次数已达上限`)
+        resolve();
+      }else if($.userInfo.energy < $.travelInfo.travelRequireEnergy){
+         $.log(`耐力不足，无法旅行，当前耐力：${$.userInfo.energy}，所需耐力:${$.travelInfo.travelRequireEnergy}`)
+        resolve();
+      }else{
+        let opt = {
+          url: `https://h5.moutai519.com.cn/game/xmTravel/startTravel`,
+          headers: {
+            'Host' : `h5.moutai519.com.cn`,
+            'Accept' : `*/*`,
+            'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+            'Accept-Encoding' : `gzip, deflate, br`,
+            'Content-Type' : `application/json`,
+            'MT-APP-Version' : $.version,
+            'MT-Device-ID': $.deviceId,
+            'User-Agent' : $.userAgent,
+            'Client-User-Agent':$.userAgent,
+            'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+            'MT-R': $.mtR,
+            'x-csrf-token':'',
+            'MT-Request-ID': generateRequestId()
+          }
+      }
+      $.post(opt,async (err, response, data) => {
+        try {
+          err && $.log(err);
+          let result = $.toObj(data) || response;
+          debug(result,"尝试旅行")
+          if(result.code == 2000){
+             $.log(`旅行成功`)
+             
+          // 尝试获取奖励
+          await doTryReceiveReward('xmTravel');
+          }else{
+            $.logErr(`旅行失败：${result.message}`)
+          }
+      
+        } catch (error) {
+          $.log(error);
+        } finally {
+          resolve()
+        }
+      })
+      }
+  })
+}
+
+
 
 
 function debug(content, title = "debug") {
