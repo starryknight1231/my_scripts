@@ -391,7 +391,7 @@ async function doQueryApplyResult(){
           reservationItems.forEach(item=>{
             if(item.status == 0){
               $.log(`${item.itemName} 未出结果`)
-              $.msg($.name,`申购成功` `🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
+              $.msg($.name,`申购成功` ,`🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
             }else{
               $.msg($.name, `🎉 ${item.itemName}申购成功。`);
             }
