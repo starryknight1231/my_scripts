@@ -1,25 +1,23 @@
 /*
-脚本名称：i茅台自动申购
-脚本ck来源：https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/get_maotai_token.js
-更新时间：2023-03-27
+脚本名称：mt
 
 ====================================================================================================
 配置 (Quantumult X)
 [rewrite_local]
-^https:\/\/app\.moutai519\.com\.cn\/xhr\/front\/mall\/message\/unRead\/query url script-request-headers https://raw.githubusercontent.com/xiany-peng/my_scripts/master/maotai.js
+^https:\/\/app\.moutai519\.com\.cn\/xhr\/front\/mall\/message\/unRead\/query url script-request-headers https://raw.githubusercontent.com/xiany-peng/my_scripts/master/mt.js
 
 [MITM]
 hostname = app.moutai519.com.cn
 */
 
-const $ = new Env('i茅台');
+const $ = new Env('MT');
 
 
 // 定义变量
 
 const AES_KEY = 'qbhajinldepmucsonaaaccgypwuvcjaa'
 const AES_IV = '2018534749963515'
-const ITEM_CODES = ['10941','10942','10056'];   //需要预约的商品(默认只预约2个赚钱的茅子)
+const ITEM_CODES = ['10941','10942','10056'];   //需要预约的商品
 $.userId = $.getdata('MT_USERID') || '1127167118';
 $.token = $.getdata('MT_TOKEN') || '';
 $.deviceId = $.getdata('MT_DEVICE_ID') || '';
@@ -30,11 +28,9 @@ $.is_debug = $.getdata('is_debug') || 'true';
 
 $.lat = $.getdata('MT_LAT') || '19.940231';
 $.lng = $.getdata('MT_LNG') || '110.477477';
-$.mtshopsUrl = $.getdata('MT_SHOPS_URL') || '';
 
 $.provinceName = $.getdata('MT_PROVINCE_NAME') || '海南省';
 $.cityName = $.getdata('MT_CITY_NAME') || '海口市';
-$.shops = $.getdata('MT_SHOPS') || '';
 
 
 // 主函数
@@ -45,26 +41,29 @@ function main(){
       $.done();
     } else{
       if (!$.token) {
-        $.msg($.name, '❌ 请先获取茅台Cookie。');
+        $.msg($.name, '❌ 请先获取 MT Cookie。');
         return;
       }
 
-      // // 如果当前时间是早上9点到10点
-      // if(isBetween9And10AM()){
+      // 如果当前时间是早上9点到10点
+      if(isBetween9And10AM()){
       
-      //   // 获取今日sessionId 
-      //   await getTodaySessionId();
+        // 获取今日sessionId 
+        await getTodaySessionId();
 
-      //   // 开始抽取设置的商品
-      //   await applyItemsWithDelay(10)
-      // }else if(isAfter6PM()){
-      //   await doQueryApplyResult();  // 查询申购结果
-      // }else{
-      //   $.log(`⛔️ 当前时间暂无任务可以执行`);
-      // }
+        // 开始抽取设置的商品
+        await applyItemsWithDelay(10)
+
+        //获取耐力值
+        await doGetUserEnergyAward()
+
+      }else if(isAfter6PM()){
+        await doQueryApplyResult();  // 查询申购结果
+      }else{
+        $.log(`⛔️ 当前时间暂无任务可以执行`);
+      }
       
-      //获取耐力值
-      await doGetUserEnergyAward()
+      
     }
   })()
       .catch((e) => $.logErr(e))
@@ -88,72 +87,6 @@ function main(){
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-// 获取商家列表
-async function refreshShopInfo(){
-  var requestId = generateRequestId();
-  let opt = {
-    url: `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/resource/get`,
-    headers: {
-      'X-Requested-With': 'XMLHttpRequest',
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0_1 like Mac OS X)',
-        'Referer': 'https://h5.moutai519.com.cn/gux/game/main?appConfig=2_1_2',
-        'Client-User-Agent': 'iOS;16.0.1;Apple;iPhone 14 ProMax',
-        'MT-R': 'clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==',
-        'Origin': 'https://h5.moutai519.com.cn',
-        'MT-APP-Version': $.version,
-        'MT-Request-ID': requestId,
-        'Accept-Language': 'zh-CN,zh-Hans;q=1',
-        'MT-Device-ID': $.deviceId,
-        'Accept': 'application/json, text/javascript, */*; q=0.01',
-        'mt-lng': $.lng,
-        'mt-lat': $.lat
-    }
-  }
-  return new Promise(resolve =>{
-    $.get(opt,async (err, response, data) => {
-      try {
-        err && $.log(err);
-        let result = $.toObj(data) || response;
-        if(result.code == 2000){
-          if($.mtshopsUrl !== result.data.mtshops_pc.url){
-            $.mtshopsUrl =  result.data.mtshops_pc.url;
-            $.setdata( $.mtshopsUrl, 'MT_SHOPS_URL');
-            $.log(`茅台商铺信息更新: ${$.mtshopsUrl}`);
-            await loadShopInfo($.mtshopsUrl);
-          }
-        }else{
-         $.logErr(`获取茅台资源失败`)
-        }
-      } catch (error) {
-        $.log(error);
-      } finally {
-        resolve()
-      }
-    })
-  })
-}
-
-// 加载商家信息
-async function loadShopInfo(url){
-  return new Promise(resolve =>{
-    $.get({url},async (err, response, data) => {
-      try {
-        err && $.log(err);
-        let result = $.toObj(data) || response;
-        const filteredShopIds = Object.keys(result).filter(shopId => {
-          return result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName;
-        }).join(',');
-        
-        $.shops = filteredShopIds;
-        $.setdata(filteredShopIds, `MT_SHOPS`);
-      } catch (error) {
-        $.log(error);
-      } finally {
-        resolve()
-      }
-    })
-  })
-}
 
 // 随机抽取一个商家
 async function getRandomShop(productId) {
@@ -411,23 +344,13 @@ async function doGetUserEnergyAward(){
   let opt = {
     url: `https://h5.moutai519.com.cn/game/isolationPage/getUserEnergyAward`,
     headers: {
-      'MT-Info' : `028e7f96f6369cafe1d105579c5b9377`,
-      'Accept-Encoding' : `gzip, deflate, br`,
       'Host' : `app.moutai519.com.cn`,
-      'MT-V' : `c6fc4b6638560a05a986f99fd74`,
-      'MT-User-Tag' : `0`,
-      'MT-Token' : $.token,
-      'MT-Device-ID' : $.deviceId,
-      'Connection' : `keep-alive`,
+      'Accept' : `*/*`,
       'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
-      'MT-Team-ID' : ``,
+      'Accept-Encoding' : `gzip, deflate, br`,
       'Content-Type' : `application/json`,
       'MT-APP-Version' : $.version,
       'User-Agent' : $.userAgent,
-      'MT-R' : $.mtR,
-      'MT-Bundle-ID' : `com.moutai.mall`,
-      'MT-Network-Type' : ``,
-      'Accept' : `*/*`,
       'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`
     }
   }
@@ -437,9 +360,10 @@ async function doGetUserEnergyAward(){
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        debug(result)
         if(result.code == 2000){
-          
+          $.log(`获取耐力值成功：${$.toStr(result)}`)
+        }else{
+          $.logErr(`获取耐力值失败：${result.message}`)
         }
 
       } catch (error) {
