@@ -384,15 +384,16 @@ async function doQueryApplyResult(){
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        debug(`申购查询结果:${$.toStr(response)}`) ;
+        $.log(`\n----- 申购结果 -----\n`);
         if(result.code == 2000){
           reservationItems = result.data.reservationItemVOS.filter(obj => obj.status !== 1);
           
           reservationItems.forEach(item=>{
             if(item.status == 0){
-              $.log(`[${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')}] [${item.itemName}] 未出结果`)
+              $.log(`${item.itemName} 未出结果`)
+              $.msg($.name, `🎉 ${item.itemName}申购成功。`);
             }else{
-              $.msg($.name, `🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
+              $.msg($.name, `🎉 ${item.itemName}申购成功。`);
             }
           })
         }
