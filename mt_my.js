@@ -41,13 +41,13 @@ function main(){
       }
 
       // 获取用户信息
-      //await doGetUserInfo();
+      await doGetUserInfo();
 
       // 查询酿酒信息
-      //await doGetMwInfo();
+      await doGetMwInfo();
 
       // 尝试开始酿酒
-      //await doTryStartMw();
+      await doTryStartMw();
 
       // 获取用户信息
       await doGetUserInfo();
