@@ -49,19 +49,20 @@ function main(){
         return;
       }
 
-      // 如果当前时间是早上9点到10点
-      if(isBetween9And10AM()){
+      // // 如果当前时间是早上9点到10点
+      // if(isBetween9And10AM()){
       
-        // 获取今日sessionId 
-        await getTodaySessionId();
+      //   // 获取今日sessionId 
+      //   await getTodaySessionId();
 
-        // 开始抽取设置的商品
-        await applyItemsWithDelay(10)
-      }else if(isAfter6PM()){
-        await doQueryApplyResult();  // 查询申购结果
-      }else{
-        $.log(`⛔️ 当前时间暂无任务可以执行`);
-      }
+      //   // 开始抽取设置的商品
+      //   await applyItemsWithDelay(10)
+      // }else if(isAfter6PM()){
+      //   await doQueryApplyResult();  // 查询申购结果
+      // }else{
+      //   $.log(`⛔️ 当前时间暂无任务可以执行`);
+      // }
+      await doQueryApplyResult();
     }
   })()
       .catch((e) => $.logErr(e))
@@ -184,7 +185,6 @@ async function getRandomShop(productId) {
 // 获取ck信息
 function GetCookie() {
   if ($request && $request.headers) {
-    debug($request.headers);
     if (($request.headers['MT-Token'] && $request.headers['MT-Device-ID']) || ($request.headers['mt-token'] && $request.headers['mt-device-id'])) {
       let new_MT_Token = $request.headers['MT-Token'] || $request.headers['mt-token'];
       let new_Device_ID = $request.headers['MT-Device-ID'] || $request.headers['mt-device-id'];
@@ -306,7 +306,6 @@ async function doApply(itemId,shopId){
     "userId":$.userId
   }
 
-  debug(body);
   body.actParam = aes_encrypt(body,AES_KEY,AES_IV);
 
   
@@ -334,7 +333,6 @@ async function doApply(itemId,shopId){
     },
     body: JSON.stringify(body)
   }
-  debug(opt)
   return new Promise(resolve =>{
     $.post(opt,async (err, response, data) => {
       try {
@@ -381,20 +379,19 @@ async function doQueryApplyResult(){
       'Accept' : `*/*`
     }
   }
-  debug(opt)
   return new Promise(resolve =>{
     $.get(opt,async (err, response, data) => {
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        $.log(`申购查询结果:${$.toStr(response)}`);
+        debug(`申购查询结果:${$.toStr(response)}`);
         if(result.code == 2000){
           reservationItems = result.data.reservationItemVOS;
           reservationItems.forEach(item=>{
             if(item.status == 1){
-              $.msg($.name,`⛔️ ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')}申购的${item.itemName}失败了!`);
+              //$.msg($.name,`⛔️ ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')}申购的${item.itemName}失败了!`);
             }else{
-              $.msg($.name, `🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
+              //$.msg($.name, `🎉 ${$.time(item.reservationTime,'YYYY-MM-DD hh:mm:ss')} ${item.itemName}申购成功。`);
             }
           })
         }
