@@ -384,7 +384,7 @@ async function doQueryApplyResult(){
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
-        debug(`申购查询结果:${$.toStr(response)}`);
+        debug(`申购查询结果:${$.toStr(response)}`) ;
         if(result.code == 2000){
           reservationItems = result.data.reservationItemVOS;
           reservationItems.forEach(item=>{
