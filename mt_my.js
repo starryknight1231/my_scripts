@@ -15,7 +15,7 @@ const $ = new Env('MT-小茅运');
 
 // 定义变量
 $.userId = ($.isNode() ? process.env.MT_USERID : $.getdata('MT_USERID')) || '';
-$.token = ($.isNode() ? process.env.MT_TOKEN : $.getdata('MT_TOKEN')) || '';
+$.token = ($.isNode() ? process.env.MT_MY_COOKIE : $.getdata('MT_MY_COOKIE')) || '';
 $.deviceId = ($.isNode() ? process.env.MT_DEVICE_ID : $.getdata('MT_DEVICE_ID')) || '';
 $.version = ($.isNode() ? process.env.MT_VERSION : $.getdata('MT_VERSION')) || '1.5.9';
 $.userAgent = ($.isNode() ? process.env.MT_USERAGENT : $.getdata('MT_USERAGENT')) || 'iOS;16.2;Apple;iPhone 12';
@@ -41,22 +41,22 @@ function main(){
       }
 
       // 获取用户信息
-      await doGetUserInfo();
+      //await doGetUserInfo();
 
       // 查询酿酒信息
-      await doGetMwInfo();
+      //await doGetMwInfo();
 
       // 尝试开始酿酒
-      await doTryStartMw();
+      //await doTryStartMw();
 
       // 获取用户信息
-      await doGetUserInfo();
+      //await doGetUserInfo();
        
       // 查询旅行信息
-      await doGetTravelInfo();
+      //await doGetTravelInfo();
 
       // 尝试开始旅行
-      await doTryStartTravel();
+      //await doTryStartTravel();
     }
   })()
       .catch((e) => $.logErr(e))
@@ -67,38 +67,16 @@ function main(){
 // 获取ck信息
 function GetCookie() {
   if ($request && $request.headers) {
-    if (($request.headers['MT-Token'] && $request.headers['MT-Device-ID']) || ($request.headers['mt-token'] && $request.headers['mt-device-id'])) {
-      let new_MT_Token = $request.headers['MT-Token'] || $request.headers['mt-token'];
-      let new_Device_ID = $request.headers['MT-Device-ID'] || $request.headers['mt-device-id'];
-      let old_MT_Token = $.token ;
-      if (old_MT_Token !== new_MT_Token) {
-        $.setdata(new_MT_Token, 'MT_TOKEN');
-        $.setdata(new_Device_ID, 'MT_DEVICE_ID');
-        $.msg($.name, `🎉 Token获取成功`, `${new_Device_ID + ',' + new_MT_Token}`);
+    if ($request.headers['Cookie']) {
+      let new_cookie = $request.headers['Cookie'];
+      let old_cookie = $.token ;
+      if (old_cookie !== new_cookie) {
+        $.setdata(new_cookie, 'MT_MY_COOKIE');
+        $.msg($.name, `🎉 小茅运CK获取成功`, `${new_cookie}`);
       } else {
-        $.log(`无需更新 MT-Token: [${new_Device_ID + ',' + new_MT_Token}]`);
+        $.log(`小茅运CK无需更新`, `${new_cookie}`);
       }
     }
-    if ($request.headers['MT-APP-Version'] || $request.headers['mt-app-version']) {
-      var version = $request.headers['MT-APP-Version'] || $request.headers['mt-app-version'];
-      $.setdata($.MT_VERSION, `MT_VERSION`);
-      $.log(`MT_VERSION 写入成功: [${version}]`);
-    }
-    if ($request.headers['User-Agent'] || $request.headers['user-agent']) {
-      var userAgent = $request.headers['User-Agent'] || $request.headers['user-agent'];
-      $.setdata(userAgent, `MT_USERAGENT`);
-      $.log(`MT_USERAGENT 写入成功: [${userAgent}]`);
-    }
-    if ($request.headers['MT-R'] || $request.headers['mt-r']) {
-      var mtR = $request.headers['MT-R'] || $request.headers['mt-r'];
-      $.setdata(mtR, `MT_R`);
-      $.log(`MT_R 写入成功: [${mtR}]`);
-    }
-  }
-  if ($response && $response.body) {
-    var userId = $.toObj($response.body).data.userId;
-    $.setdata(userId,`MT_USERID`)
-    $.log(`MT_USERID 写入成功：[${userId}]` )
   }
 }
 
@@ -125,7 +103,7 @@ async function doGetUserInfo(){
       'MT-Device-ID': $.deviceId,
       'User-Agent' : $.userAgent,
       'Client-User-Agent':$.userAgent,
-      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+      'Cookie': $.token,
       'MT-R': $.mtR,
       'x-csrf-token':'',
       'MT-Request-ID': generateRequestId()
@@ -167,7 +145,7 @@ async function doGetMwInfo(){
       'MT-Device-ID': $.deviceId,
       'User-Agent' : $.userAgent,
       'Client-User-Agent':$.userAgent,
-      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+      'Cookie': $.token,
       'MT-R': $.mtR,
       'x-csrf-token':'',
       'MT-Request-ID': generateRequestId()
@@ -215,7 +193,7 @@ async function doTryStartMw(){
             'MT-Device-ID': $.deviceId,
             'User-Agent' : $.userAgent,
             'Client-User-Agent':$.userAgent,
-            'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+            'Cookie': $.token,
             'MT-R': $.mtR,
             'x-csrf-token':'',
             'MT-Request-ID': generateRequestId()
@@ -259,7 +237,7 @@ async function doTryReceiveReward(type){
             'MT-Device-ID': $.deviceId,
             'User-Agent' : $.userAgent,
             'Client-User-Agent':$.userAgent,
-            'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+            'Cookie': $.token,
             'MT-R': $.mtR,
             'x-csrf-token':'',
             'MT-Request-ID': generateRequestId()
@@ -300,7 +278,7 @@ async function doGetTravelInfo(){
       'MT-Device-ID': $.deviceId,
       'User-Agent' : $.userAgent,
       'Client-User-Agent':$.userAgent,
-      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+      'Cookie': $.token,
       'MT-R': $.mtR,
       'x-csrf-token':'',
       'MT-Request-ID': generateRequestId()
@@ -349,7 +327,7 @@ async function doTryStartTravel(){
             'MT-Device-ID': $.deviceId,
             'User-Agent' : $.userAgent,
             'Client-User-Agent':$.userAgent,
-            'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`,
+            'Cookie': $.token,
             'MT-R': $.mtR,
             'x-csrf-token':'',
             'MT-Request-ID': generateRequestId()
