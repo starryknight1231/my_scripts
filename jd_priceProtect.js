@@ -11,17 +11,39 @@ https:\/\/api\.m.jd.com\/api\?appid=siteppM&functionId=siteppM_priceskusPull url
 
 const $ = new Env('京东价格保护');
 
-$.token = ($.isNode() ? process.env.JD_TOKEN : $.getdata('JD_TOKEN')) || '';
+$.cookie = ($.isNode() ? process.env.JD_COOKIE : $.getdata('JD_COOKIE')) || '';
+$.userAgent = ($.isNode() ? process.env.JD_USERAGENT : $.getdata('JD_USERAGENT')) || '';
 $.is_debug = ($.isNode() ? process.env.IS_DEBUG : $.getdata('IS_DEBUG')) || 'true';
+
+$.HyperParam = {
+    sid_hid: '',
+    type_hid: '3',
+    forcebot: ''
+}
 
 !(async () => {
     if (isGetCookie = typeof $request !== `undefined`) {
         GetCookie();
         $.done();
     } else {
-        if (!$.token) {
+        if (!$.cookie) {
             $.msg($.name, '❌ 请先获取 JD Cookie。');
             return;
+        }
+
+        $.userName = decodeURIComponent($.cookie.match(/pt_pin=(.+?);/) && $.cookie.match(/pt_pin=(.+?);/)[1])
+        $.isLogin = true
+        $.nickName = ''
+        await doGetUserInfo();
+        if (!$.isLogin) {
+            $.msg($.name, `【提示】cookie已失效`, `X东账号${$.nickName || $.userName}\n请重新登录获取\nhttps://bean.m.jd.com/`, {
+                "open-url": "https://bean.m.jd.com/"
+            })
+        }else{
+            $.log(`\n***********开始【X东账号${$.nickName || $.userName}********\n`);
+
+            $.applied = false
+            await onceApply()
         }
 
     }
@@ -32,19 +54,122 @@ $.is_debug = ($.isNode() ? process.env.IS_DEBUG : $.getdata('IS_DEBUG')) || 'tru
 // 获取ck信息
 function GetCookie() {
     if ($request && $request.method == 'POST' && $request.url.match(/siteppM_priceskusPull/)) {
-        const body = $request.body
-        debug(body)
-        let data = JSON.parse(decodeURIComponent(body).slice(5))
-        let new_token = data.token
-        let old = $.token;
+        const cookie = $request.headers['Cookie'];
+
+        var pt_key = cookie.match(new RegExp('(^| )pt_key=([^;]+)'))[2];
+        var pt_pin = cookie.match(new RegExp('(^| )pt_pin=([^;]+)'))[2];
+        let new_token = `pt_key=${pt_key};pt_pin=${pt_pin};`;
+        let old = $.cookie;
         if (old !== new_token) {
             $.setdata(new_token, 'JD_TOKEN');
             $.msg($.name, `Token获取成功`, `${new_token}`);
-          } else {
+        } else {
             $.log(`无需更新 JD-Token: [${old}]`);
-          }
+        }
+        $.setdata($request.headers['User-Agent'], 'JD_USERAGENT');
     }
 }
+
+// 获取用户信息
+function doGetUserInfo() {
+    return new Promise(async resolve => {
+        const options = {
+            "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
+            "headers": {
+                "Accept": "application/json,text/plain, */*",
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept-Language": "zh-cn",
+                "Connection": "keep-alive",
+                "Cookie": $.cookie,
+                "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
+                "User-Agent": $.userAgent
+            },
+            "timeout": 10000,
+        }
+        $.post(options, (err, response, data) => {
+            try {
+                err && $.log(err);
+                let result = $.toObj(data) || response;
+                debug(result,"result")
+                if(result.retcode === 13){
+                    $.isLogin = false; //cookie过期
+                    return;
+                }else if(result.retCode === 0){
+                    $.nickName = (data['base'] && data['base'].nickname) || $.userName;
+                }else{
+                    $.nickName = $.userName
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve();
+            }
+        })
+    })
+}
+
+function taskurl(functionid, body,h5st ) {
+    const urlStr = `https://api.m.jd.com/api?appid=siteppM&functionId=${functionid}&forcebot=${$.HyperParam.forcebot}&t=${new Date().getTime()}`
+    return {
+        "url": urlStr,
+        "headers": {
+            'Host': 'api.m.jd.com',
+            'Accept': '*/*',
+            'Accept-Language': 'zh-cn',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Origin': 'https://msitepp-fm.jd.com',
+            'Connection': 'keep-alive',
+            "User-Agent": $.userAgent,
+            "Cookie": $.cookie
+        },
+        "body": body ? `body=${encodeURIComponent(JSON.stringify(body))}` : undefined
+    }
+}
+
+async function onceApply() {
+    var time = new Date().getTime();
+
+    let paramObj = {};
+    paramObj.sid = $.HyperParam.sid_hid
+    paramObj.type = $.HyperParam.type_hid
+    paramObj.forcebot = $.HyperParam.forcebot
+
+    var h5st = await signWaap("d2f64", {
+        appid: "siteppM",
+        functionId: "siteppM_skuOnceApply",
+        t: time,
+        body: paramObj
+    });
+
+
+    return new Promise((resolve, reject) => {
+        $.post({
+            url: `https://api.m.jd.com/api?appid=siteppM&functionId=siteppM_skuOnceApply&forcebot=${$.HyperParam.forcebot}&t=${time}&x-api-eid-token=`,
+            body: `body=${encodeURIComponent(JSON.stringify(body))}`,
+        }, (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`🚫 ${arguments.callee.name.toString()} API请求失败，请检查网路\n${JSON.stringify(err)}`)
+                } else {
+                    data = JSON.parse(data)
+                    if (data.flag) {
+                        $.applied = true
+                    }
+                    else {
+                        console.log(`一键价格保护失败，原因：${data.responseMessage}`)
+                    }
+                }
+            } catch (e) {
+                reject(`⚠️ ${arguments.callee.name.toString()} API返回结果解析出错\n${e}\n${JSON.stringify(data)}`)
+            } finally {
+                resolve()
+            }
+        })
+    })
+}
+
 
 
 function debug(content, title = "debug") {

@@ -28,9 +28,13 @@ $.is_debug = $.getdata('is_debug') || 'false';
 
 $.lat = $.getdata('MT_LAT') || '19.940231';
 $.lng = $.getdata('MT_LNG') || '110.477477';
+$.mtshopsUrl =  $.getdata('MT_SHOPS_URL') || '海口市';
+
 
 $.provinceName = $.getdata('MT_PROVINCE_NAME') || '海南省';
 $.cityName = $.getdata('MT_CITY_NAME') || '海口市';
+
+
 
 
 // 主函数
@@ -46,13 +50,20 @@ function main(){
       }
 
       // 如果当前时间是早上9点到10点
-      if(isBetween9And10AM()){
+      // if(isBetween9And10AM()){
+        if(true){
       
         // 获取今日sessionId 
         await getTodaySessionId();
 
+        // 刷新所有店家信息
+        await refreshShopInfo();
+
+        // 筛选当前地区的店家信息
+        await loadShopInfo($.mtshopsUrl);
+
         // 开始抽取设置的商品
-        await applyItemsWithDelay(10)
+        //await applyItemsWithDelay(10)
 
       }else if(isAfter6PM()){
         await doQueryApplyResult();  // 查询申购结果
@@ -74,16 +85,76 @@ function main(){
       var shopId = await getRandomShop(item);
       $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
       await doApply(item, shopId); // 进行申购
-      if (i < ITEM_CODES.length - 1) {
-        await delay(sleepSeconds * 1000); // 等待10秒
-      }
+      $.wait(sleepSeconds * 1000);
     }
   }
-  
-  function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 
+  // 获取商家列表
+async function refreshShopInfo(){
+  var requestId = generateRequestId();
+  let opt = {
+    url: `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/resource/get`,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0_1 like Mac OS X)',
+        'Referer': 'https://h5.moutai519.com.cn/gux/game/main?appConfig=2_1_2',
+        'Client-User-Agent': 'iOS;16.0.1;Apple;iPhone 14 ProMax',
+        'MT-R': 'clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==',
+        'Origin': 'https://h5.moutai519.com.cn',
+        'MT-APP-Version': $.version,
+        'MT-Request-ID': requestId,
+        'Accept-Language': 'zh-CN,zh-Hans;q=1',
+        'MT-Device-ID': $.deviceId,
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'mt-lng': $.lng,
+        'mt-lat': $.lat
+    }
+  }
+  return new Promise(resolve =>{
+    $.get(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        if(result.code == 2000){
+          if($.mtshopsUrl !== result.data.mtshops_pc.url){
+            $.mtshopsUrl =  result.data.mtshops_pc.url;
+            $.setdata( $.mtshopsUrl, 'MT_SHOPS_URL');
+            $.log(`茅台商铺信息更新: ${$.mtshopsUrl}`);
+          }
+        }else{
+         $.logErr(`获取茅台资源失败`)
+        }
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+}
+
+// 加载商家信息
+async function loadShopInfo(url){
+  return new Promise(resolve =>{
+    $.get({url},async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        const filteredShopIds = Object.keys(result).filter(shopId => {
+          return result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName;
+        }).join(',');
+        
+        $.localShops = filteredShopIds;
+        $.log(`${$.provinceName} ${$.cityName} 商家：${filteredShopIds}`)
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+}
+  
 
 // 随机抽取一个商家
 async function getRandomShop(productId) {
