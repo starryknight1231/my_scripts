@@ -107,10 +107,7 @@ async function doGetUserEnergyAward(){
       'MT-Request-ID': generateRequestId()
     }
   }
-<<<<<<< HEAD
   debug(opt);
-=======
->>>>>>> b5610b4c36a5fc7b12d55e70b49b1a7f8b38752b
   return new Promise(resolve =>{
     $.post(opt,async (err, response, data) => {
       try {
