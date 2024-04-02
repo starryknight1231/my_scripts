@@ -63,7 +63,7 @@ function main(){
         await loadShopInfo($.mtshopsUrl);
 
         // 开始抽取设置的商品
-        //await applyItemsWithDelay(10)
+        await applyItemsWithDelay(10)
 
       }else if(isAfter6PM()){
         await doQueryApplyResult();  // 查询申购结果
@@ -93,7 +93,7 @@ function generateRequestId() {
       var item = ITEM_CODES[i];
       var shopId = await getRandomShop(item);
       $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
-      await doApply(item, shopId); // 进行申购
+      //await doApply(item, shopId); // 进行申购
       $.wait(sleepSeconds * 1000);
     }
   }
@@ -183,8 +183,14 @@ async function getRandomShop(productId) {
         let result = $.toObj(data) || response;
         if(result.code == 2000){
           var shops = result.data.shops;
-          const randomIndex = Math.floor(Math.random() * shops.length);
-          resolve(shops[randomIndex].shopId);
+          const filteredShops = shops.filter(shop => $.localShops.indexOf(shop.shopId) !== -1);
+
+          if (filteredShops.length > 0) {
+              const randomIndex = Math.floor(Math.random() * filteredShops.length);
+              resolve(filteredShops[randomIndex].shopId);
+          } else {
+              resolve(null); 
+          }
         }else{
           $.logErr(result);
           $.msg($.name,`⛔️ 随机获取商家失败！`);
