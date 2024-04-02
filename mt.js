@@ -99,7 +99,7 @@ function generateRequestId() {
   }
 
   // 获取商家列表
-  
+
 async function refreshShopInfo(){
   var requestId = generateRequestId();
   let opt = {
@@ -151,6 +151,9 @@ async function loadShopInfo(url){
         err && $.log(err);
         let result = $.toObj(data) || response;
         const filteredShopIds = Object.keys(result).filter(shopId => {
+          if(result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName){
+            $.log($.toStr(result[shopId]));
+          }
           return result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName;
         }).join(',');
         
