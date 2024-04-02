@@ -50,9 +50,8 @@ function main(){
       }
 
       // 如果当前时间是早上9点到10点
-      // if(isBetween9And10AM()){
-        if(true){
-      
+      if(isBetween9And10AM()){
+
         // 获取今日sessionId 
         await getTodaySessionId();
 
@@ -93,7 +92,7 @@ function generateRequestId() {
       var item = ITEM_CODES[i];
       var shopId = await getRandomShop(item);
       $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
-      //await doApply(item, shopId); // 进行申购
+      await doApply(item, shopId); // 进行申购
       await $.wait(sleepSeconds * 1000);
     }
   }
@@ -155,7 +154,6 @@ async function loadShopInfo(url){
         }).join(',');
         
         $.localShops = filteredShopIds;
-        $.log(`${$.provinceName} ${$.cityName} 商家：${filteredShopIds}`)
       } catch (error) {
         $.log(error);
       } finally {
@@ -172,7 +170,6 @@ async function getRandomShop(productId) {
   today.setHours(0, 0, 0, 0); // 将时间设置为午夜（零点）
   const dayTime = today.getTime();
   let url = `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/shop/list/slim/v3/${$.todaySessionId}/${encodeURIComponent($.provinceName)}/${productId}/${dayTime}`;
-  $.log(url);
   return new Promise(resolve =>{
     $.get({url},async (err, response, data) => {
       try {
