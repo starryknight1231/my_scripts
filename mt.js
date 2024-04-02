@@ -24,7 +24,7 @@ $.deviceId = $.getdata('MT_DEVICE_ID') || '';
 $.version = $.getdata('MT_VERSION') || '1.5.9';
 $.userAgent = $.getdata('MT_USERAGENT') || 'iOS;16.2;Apple;iPhone 12';
 $.mtR = $.getdata('MT_R') || '';
-$.is_debug = $.getdata('is_debug') || 'true';
+$.is_debug = $.getdata('is_debug') || 'false';
 
 $.lat = $.getdata('MT_LAT') || '19.940231';
 $.lng = $.getdata('MT_LNG') || '110.477477';
@@ -53,9 +53,6 @@ function main(){
 
         // 开始抽取设置的商品
         await applyItemsWithDelay(10)
-
-        //获取耐力值
-        await doGetUserEnergyAward()
 
       }else if(isAfter6PM()){
         await doQueryApplyResult();  // 查询申购结果
@@ -339,48 +336,6 @@ async function doQueryApplyResult(){
 
 }
 
-// 获取耐力
-async function doGetUserEnergyAward(){
-  let opt = {
-    url: `https://h5.moutai519.com.cn/game/isolationPage/getUserEnergyAward`,
-    headers: {
-      'Host' : `app.moutai519.com.cn`,
-      'Accept' : `*/*`,
-      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
-      'Accept-Encoding' : `gzip, deflate, br`,
-      'Content-Type' : `application/json`,
-      'MT-APP-Version' : $.version,
-      'User-Agent' : $.userAgent,
-      'Cookie': `MT-Device-ID-Wap=${$.deviceId};MT-Token-Wap=${$.token};YX_SUPPORT_WEBP=1`
-    }
-  }
-  debug(opt)
-  return new Promise(resolve =>{
-    $.post(opt,async (err, response, data) => {
-      try {
-        err && $.log(err);
-        let result = $.toObj(data) || response;
-        if(result.code == 2000){
-          $.log(`获取耐力值成功：${$.toStr(result)}`)
-        }else{
-          $.logErr(`获取耐力值失败：${result.message}`)
-        }
-
-      } catch (error) {
-        $.log(error);
-      } finally {
-        resolve()
-      }
-    })
-  })
-}
-
-// 生成请求ID
-function generateRequestId() {
-  var timestamp = new Date().getTime();
-  var randomPart = Math.floor(Math.random() * (999999999 - 1111111) + 1111111);
-  return timestamp.toString() + randomPart.toString() + timestamp.toString();
-}
 
 function debug(content, title = "debug") {
   let start = `\n----- ${title} -----\n`;
