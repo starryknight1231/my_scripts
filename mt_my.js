@@ -4,10 +4,10 @@
 ====================================================================================================
 配置 (Quantumult X)
 [rewrite_local]
-^https:\/\/h5\.moutai519\.com\.cn\/gux\/game\/main\?appConfig\=2\_1\_2 url script-request-headers https://raw.githubusercontent.com/xiany-peng/my_scripts/master/mt_my.js
+^https:\/\/h5\.moutai519\.com\.cn\/gux\/game\/main\?appConfig=2_1_2 url script-request-headers https://raw.githubusercontent.com/xiany-peng/my_scripts/master/mt_my.js
 
 [MITM]
-hostname = app.moutai519.com.cn
+hostname = h5.moutai519.com.cn
 */
 
 const $ = new Env('MT-小茅运');
@@ -47,16 +47,16 @@ function main(){
       await doGetMwInfo();
 
       // 尝试开始酿酒
-      //await doTryStartMw();
+      await doTryStartMw();
 
       // 获取用户信息
-      //await doGetUserInfo();
+      await doGetUserInfo();
        
       // 查询旅行信息
       await doGetTravelInfo();
 
       // 尝试开始旅行
-      //await doTryStartTravel();
+      await doTryStartTravel();
     }
   })()
       .catch((e) => $.logErr(e))
@@ -109,7 +109,7 @@ async function doGetUserInfo(){
       'MT-Request-ID': generateRequestId()
     }
   }
-  debug(opt,"获取用户信息")
+  
   return new Promise(resolve =>{
     $.get(opt,async (err, response, data) => {
       try {
@@ -117,6 +117,7 @@ async function doGetUserInfo(){
         let result = $.toObj(data) || response;
         if(result.code == 2000){
           $.userInfo = result.data;
+          debug($.userInfo,"获取用户信息")
           $.log(`当前茅运：${$.userInfo.xiaomaoyun},耐力：${$.userInfo.energy}`)
         }else{
           $.logErr(`获取个人信息失败：${result.message}`)
@@ -151,6 +152,7 @@ async function doGetMwInfo(){
       'MT-Request-ID': generateRequestId()
     }
   }
+  
   return new Promise(resolve =>{
     $.get(opt,async (err, response, data) => {
       try {
@@ -158,6 +160,7 @@ async function doGetMwInfo(){
         let result = $.toObj(data) || response;
         if(result.code == 2000){
           $.mvInfo = result.data;
+          debug($.mvInfo,"查询酿酒信息")
         }else{
           $.logErr(`获取酿酒信息失败：${result.message}`)
         }
@@ -206,8 +209,6 @@ async function doTryStartMw(){
           debug(result,"尝试酿酒")
           if(result.code == 2000){
              $.log(`酿酒成功`);
-             // 尝试获取奖励
-             await doTryReceiveReward('xmMw');
           }else{
             $.logErr(`酿酒失败：${result.message}`)
           }
@@ -284,13 +285,13 @@ async function doGetTravelInfo(){
       'MT-Request-ID': generateRequestId()
     }
   }
-  debug(opt,"查询旅行信息")
   return new Promise(resolve =>{
     $.get(opt,async (err, response, data) => {
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
         if(result.code == 2000){
+          debug($.userInfo,"查询旅行信息")
           $.travelInfo = result.data;
         }else{
           $.logErr(`获取旅行信息失败：${result.message}`)
@@ -340,9 +341,6 @@ async function doTryStartTravel(){
           debug(result,"尝试旅行")
           if(result.code == 2000){
              $.log(`旅行成功`)
-             
-          // 尝试获取奖励
-          await doTryReceiveReward('xmTravel');
           }else{
             $.logErr(`旅行失败：${result.message}`)
           }
@@ -356,9 +354,6 @@ async function doTryStartTravel(){
       }
   })
 }
-
-
-
 
 function debug(content, title = "debug") {
   let start = `\n----- ${title} -----\n`;
