@@ -46,19 +46,19 @@ function main(){
       await doGetUserInfo();
 
       // 查询酿酒信息
-      //await doGetMwInfo();
+      await doGetMwInfo();
 
       // 尝试开始酿酒
-      //await doTryStartMw();
+      await doTryStartMw();
 
       // 获取用户信息
-      //await doGetUserInfo();
+      await doGetUserInfo();
        
       // 查询旅行信息
-      //await doGetTravelInfo();
+      await doGetTravelInfo();
 
       // 尝试开始旅行
-      //await doTryStartTravel();
+      await doTryStartTravel();
     }
   })()
       .catch((e) => $.logErr(e))
@@ -114,7 +114,7 @@ async function doGetUserEnergyAward(){
         err && $.log(err);
         let result = $.toObj(data) || response;
         debug(result,"获取耐力值")
-        if(result.code == 2000){
+        if(result.code == 200){
           $.log(`获取耐力值成功：${$.toStr(result)}`)
         }else{
           $.logErr(`获取耐力值失败：${result.message}`)
