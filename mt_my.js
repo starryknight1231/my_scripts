@@ -39,23 +39,26 @@ function main(){
         return;
       }
 
+      //获取耐力值
+      await doGetUserEnergyAward()
+
       // 获取用户信息
       await doGetUserInfo();
 
       // 查询酿酒信息
-      await doGetMwInfo();
+      //await doGetMwInfo();
 
       // 尝试开始酿酒
-      await doTryStartMw();
+      //await doTryStartMw();
 
       // 获取用户信息
-      await doGetUserInfo();
+      //await doGetUserInfo();
        
       // 查询旅行信息
-      await doGetTravelInfo();
+      //await doGetTravelInfo();
 
       // 尝试开始旅行
-      await doTryStartTravel();
+      //await doTryStartTravel();
     }
   })()
       .catch((e) => $.logErr(e))
@@ -88,6 +91,44 @@ function generateRequestId() {
   });
 }
 
+// 获取耐力
+async function doGetUserEnergyAward(){
+  let opt = {
+    url: `https://h5.moutai519.com.cn/game/isolationPage/getUserEnergyAward`,
+    headers: {
+      'Host' : `app.moutai519.com.cn`,
+      'Accept' : `*/*`,
+      'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
+      'Accept-Encoding' : `gzip, deflate, br`,
+      'Content-Type' : `application/json`,
+      'MT-APP-Version' : $.version,
+      'User-Agent' : $.userAgent,
+      'Cookie': $.token,
+      'MT-Request-ID': generateRequestId()
+    }
+  }
+  debug(opt);
+  return new Promise(resolve =>{
+    $.post(opt,async (err, response, data) => {
+      try {
+        err && $.log(err);
+        let result = $.toObj(data) || response;
+        debug(result,"获取耐力值")
+        if(result.code == 2000){
+          $.log(`获取耐力值成功：${$.toStr(result)}`)
+        }else{
+          $.logErr(`获取耐力值失败：${result.message}`)
+        }
+
+      } catch (error) {
+        $.log(error);
+      } finally {
+        resolve()
+      }
+    })
+  })
+}
+
 // 获取用户信息
 async function doGetUserInfo(){
   let opt = {
@@ -108,7 +149,7 @@ async function doGetUserInfo(){
       'MT-Request-ID': generateRequestId()
     }
   }
-  
+  debug(opt);
   return new Promise(resolve =>{
     $.get(opt,async (err, response, data) => {
       try {
