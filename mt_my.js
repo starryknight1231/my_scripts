@@ -352,7 +352,7 @@ async function doTryReceiveTravelReward() {
         err && $.log(err);
         let result = $.toObj(data) || response;
         debug(result, "查询旅游奖励信息")
-        if (result.code == 2000 && result.data.postcardId != null) {
+        if (result.code == 2000 && result.data.receivedTravelReward == 0) {
           await doGetReceiveTravelReward();
         } else {
           $.log(`暂无旅游奖励可以获取`)
@@ -373,7 +373,8 @@ async function doGetReceiveTravelReward() {
   return new Promise(resolve => {
     let opt = {
       url: `https://h5.moutai519.com.cn/game/xmTravel/receiveReward`,
-      headers: headers()
+      headers: headers(),
+      body:`{}`
     }
     $.get(opt, async (err, response, data) => {
       try {
