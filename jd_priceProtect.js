@@ -24,7 +24,7 @@ $.is_debug = ($.isNode() ? process.env.IS_DEBUG : $.getdata('IS_DEBUG')) || 'tru
             return;
         }
 
-        $.UserName = decodeURIComponent($.cookie.match(/pt_pin=(.+?);/) && $.cookie.match(/pt_pin=(.+?);/)[1])
+        $.UserName = decodeURIComponent($.token.match(/pt_pin=(.+?);/) && $.token.match(/pt_pin=(.+?);/)[1])
         $.isLogin = true
         $.nickName = ''
         await totalBean();
