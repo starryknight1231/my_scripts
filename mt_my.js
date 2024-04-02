@@ -4,7 +4,7 @@
 ====================================================================================================
 配置 (Quantumult X)
 [rewrite_local]
-^https:\/\/app\.moutai519\.com\.cn\/xhr\/front\/mall\/message\/unRead\/query url script-request-headers https://raw.githubusercontent.com/xiany-peng/my_scripts/master/mt_My.js
+^https:\/\/h5\.moutai519\.com\.cn\/gux\/game\/main\?appConfig\=2\_1\_2 url script-request-headers https://raw.githubusercontent.com/xiany-peng/my_scripts/master/mt_my.js
 
 [MITM]
 hostname = app.moutai519.com.cn
@@ -41,10 +41,10 @@ function main(){
       }
 
       // 获取用户信息
-      //await doGetUserInfo();
+      await doGetUserInfo();
 
       // 查询酿酒信息
-      //await doGetMwInfo();
+      await doGetMwInfo();
 
       // 尝试开始酿酒
       //await doTryStartMw();
@@ -53,7 +53,7 @@ function main(){
       //await doGetUserInfo();
        
       // 查询旅行信息
-      //await doGetTravelInfo();
+      await doGetTravelInfo();
 
       // 尝试开始旅行
       //await doTryStartTravel();
