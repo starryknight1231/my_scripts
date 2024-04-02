@@ -94,7 +94,7 @@ function generateRequestId() {
       var shopId = await getRandomShop(item);
       $.log(`进行申购: ${item} 商铺ID为：${shopId}`);
       //await doApply(item, shopId); // 进行申购
-      $.wait(sleepSeconds * 1000);
+      await $.wait(sleepSeconds * 1000);
     }
   }
 
@@ -151,9 +151,6 @@ async function loadShopInfo(url){
         err && $.log(err);
         let result = $.toObj(data) || response;
         const filteredShopIds = Object.keys(result).filter(shopId => {
-          if(result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName){
-            $.log($.toStr(result[shopId]));
-          }
           return result[shopId].provinceName === $.provinceName && result[shopId].cityName === $.cityName;
         }).join(',');
         
