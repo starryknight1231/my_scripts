@@ -11,15 +11,8 @@ https:\/\/api\.m.jd.com\/api\?appid=siteppM&functionId=siteppM_priceskusPull url
 
 const $ = new Env('京东价格保护');
 
-$.cookie = ($.isNode() ? process.env.JD_COOKIE : $.getdata('JD_COOKIE')) || '';
-$.userAgent = ($.isNode() ? process.env.JD_USERAGENT : $.getdata('JD_USERAGENT')) || '';
+$.token = ($.isNode() ? process.env.JD_TOKEN : $.getdata('JD_TOKEN')) || '';
 $.is_debug = ($.isNode() ? process.env.IS_DEBUG : $.getdata('IS_DEBUG')) || 'true';
-
-$.HyperParam = {
-    sid_hid: '',
-    type_hid: '3',
-    forcebot: ''
-}
 
 !(async () => {
     if (isGetCookie = typeof $request !== `undefined`) {
@@ -31,20 +24,10 @@ $.HyperParam = {
             return;
         }
 
-        $.userName = decodeURIComponent($.cookie.match(/pt_pin=(.+?);/) && $.cookie.match(/pt_pin=(.+?);/)[1])
+        $.UserName = decodeURIComponent($.token.match(/pt_pin=(.+?);/) && $.token.match(/pt_pin=(.+?);/)[1])
         $.isLogin = true
         $.nickName = ''
-        await doGetUserInfo();
-        if (!$.isLogin) {
-            $.msg($.name, `【提示】cookie已失效`, `X东账号${$.nickName || $.userName}\n请重新登录获取\nhttps://bean.m.jd.com/`, {
-                "open-url": "https://bean.m.jd.com/"
-            })
-        }else{
-            $.log(`\n***********开始【X东账号${$.nickName || $.userName}********\n`);
-
-            $.applied = false
-            await onceApply()
-        }
+        await totalBean();
 
     }
 })()
@@ -59,7 +42,7 @@ function GetCookie() {
         var pt_key = cookie.match(new RegExp('(^| )pt_key=([^;]+)'))[2];
         var pt_pin = cookie.match(new RegExp('(^| )pt_pin=([^;]+)'))[2];
         let new_token = `pt_key=${pt_key};pt_pin=${pt_pin};`;
-        let old = $.cookie;
+        let old = $.token;
         if (old !== new_token) {
             $.setdata(new_token, 'JD_TOKEN');
             $.msg($.name, `Token获取成功`, `${new_token}`);
@@ -70,8 +53,7 @@ function GetCookie() {
     }
 }
 
-// 获取用户信息
-function doGetUserInfo() {
+function totalBean() {
     return new Promise(async resolve => {
         const options = {
             "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
@@ -81,90 +63,37 @@ function doGetUserInfo() {
                 "Accept-Encoding": "gzip, deflate, br",
                 "Accept-Language": "zh-cn",
                 "Connection": "keep-alive",
-                "Cookie": $.cookie,
+                "Cookie": $.token,
                 "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-                "User-Agent": $.userAgent
+                "User-Agent": "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"
             },
             "timeout": 10000,
         }
-        $.post(options, (err, response, data) => {
+        $.post(options, (err, resp, data) => {
             try {
-                err && $.log(err);
-                let result = $.toObj(data) || response;
-                debug(result,"result")
-                if(result.retcode === 13){
-                    $.isLogin = false; //cookie过期
-                    return;
-                }else if(result.retCode === 0){
-                    $.nickName = (data['base'] && data['base'].nickname) || $.userName;
-                }else{
-                    $.nickName = $.userName
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(`${$.name} API请求失败，请检查网路重试`)
+                } else {
+                    if (data) {
+                        data = JSON.parse(data);
+                        if (data['retcode'] === 13) {
+                            $.isLogin = false; //cookie过期
+                            return
+                        }
+                        if (data['retcode'] === 0) {
+                            $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
+                        } else {
+                            $.nickName = $.UserName
+                        }
+                    } else {
+                        console.log(`X东服务器返回空数据`)
+                    }
                 }
             } catch (e) {
                 $.logErr(e, resp)
             } finally {
                 resolve();
-            }
-        })
-    })
-}
-
-function taskurl(functionid, body,h5st ) {
-    const urlStr = `https://api.m.jd.com/api?appid=siteppM&functionId=${functionid}&forcebot=${$.HyperParam.forcebot}&t=${new Date().getTime()}`
-    return {
-        "url": urlStr,
-        "headers": {
-            'Host': 'api.m.jd.com',
-            'Accept': '*/*',
-            'Accept-Language': 'zh-cn',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Origin': 'https://msitepp-fm.jd.com',
-            'Connection': 'keep-alive',
-            "User-Agent": $.userAgent,
-            "Cookie": $.cookie
-        },
-        "body": body ? `body=${encodeURIComponent(JSON.stringify(body))}` : undefined
-    }
-}
-
-async function onceApply() {
-    var time = new Date().getTime();
-
-    let paramObj = {};
-    paramObj.sid = $.HyperParam.sid_hid
-    paramObj.type = $.HyperParam.type_hid
-    paramObj.forcebot = $.HyperParam.forcebot
-
-    var h5st = await signWaap("d2f64", {
-        appid: "siteppM",
-        functionId: "siteppM_skuOnceApply",
-        t: time,
-        body: paramObj
-    });
-
-
-    return new Promise((resolve, reject) => {
-        $.post({
-            url: `https://api.m.jd.com/api?appid=siteppM&functionId=siteppM_skuOnceApply&forcebot=${$.HyperParam.forcebot}&t=${time}&x-api-eid-token=`,
-            body: `body=${encodeURIComponent(JSON.stringify(body))}`,
-        }, (err, resp, data) => {
-            try {
-                if (err) {
-                    console.log(`🚫 ${arguments.callee.name.toString()} API请求失败，请检查网路\n${JSON.stringify(err)}`)
-                } else {
-                    data = JSON.parse(data)
-                    if (data.flag) {
-                        $.applied = true
-                    }
-                    else {
-                        console.log(`一键价格保护失败，原因：${data.responseMessage}`)
-                    }
-                }
-            } catch (e) {
-                reject(`⚠️ ${arguments.callee.name.toString()} API返回结果解析出错\n${e}\n${JSON.stringify(data)}`)
-            } finally {
-                resolve()
             }
         })
     })
