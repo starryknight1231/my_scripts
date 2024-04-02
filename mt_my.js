@@ -96,7 +96,7 @@ async function doGetUserEnergyAward(){
   let opt = {
     url: `https://h5.moutai519.com.cn/game/isolationPage/getUserEnergyAward`,
     headers: {
-      'Host' : `app.moutai519.com.cn`,
+      'Host' : `h5.moutai519.com.cn`,
       'Accept' : `*/*`,
       'Accept-Language' : `zh-Hans-CN;q=1, en-CN;q=0.9`,
       'Accept-Encoding' : `gzip, deflate, br`,

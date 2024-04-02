@@ -271,7 +271,7 @@ async function doApply(itemId,shopId){
         if(result.code == 2000){
           $.msg($.name,``,`✅ ${result.data.successDesc}!`);
         }else{
-          $.msg($.name,`⛔️ 申购失败！`);
+          $.msg($.name,``,`${result.message}`);
         }
       } catch (error) {
         $.log(error);
