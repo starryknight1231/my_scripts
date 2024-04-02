@@ -14,7 +14,6 @@ const $ = new Env('MT-小茅运');
 
 
 // 定义变量
-$.userId = ($.isNode() ? process.env.MT_USERID : $.getdata('MT_USERID')) || '';
 $.token = ($.isNode() ? process.env.MT_MY_COOKIE : $.getdata('MT_MY_COOKIE')) || '';
 $.deviceId = ($.isNode() ? process.env.MT_DEVICE_ID : $.getdata('MT_DEVICE_ID')) || '';
 $.version = ($.isNode() ? process.env.MT_VERSION : $.getdata('MT_VERSION')) || '1.5.9';
