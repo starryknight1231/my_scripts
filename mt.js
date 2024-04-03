@@ -97,7 +97,7 @@ async function applyItemsWithDelay(sleepSeconds) {
   }
 }
 
-  // 获取商家列表
+// 获取商家列表
 
 async function refreshShopInfo(){
   var requestId = generateRequestId();
