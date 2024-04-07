@@ -25,11 +25,6 @@ function main(){
                 return;
             }
     
-            $.UserName = decodeURIComponent($.token.match(/pt_pin=(.+?);/) && $.token.match(/pt_pin=(.+?);/)[1])
-            $.isLogin = true
-            $.nickName = ''
-            await totalBean();
-            await onceApply();
         }
     })()
         .catch((e) => $.logErr(e))
