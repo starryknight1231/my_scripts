@@ -312,9 +312,10 @@ async function doGetReceiveXmReward() {
   return new Promise(resolve => {
     let opt = {
       url: `https://h5.moutai519.com.cn/game/xmMw/receiveReward`,
-      headers: headers()
+      headers: headers(),
+      body:`{}`
     }
-    $.get(opt, async (err, response, data) => {
+    $.post(opt, async (err, response, data) => {
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
@@ -376,7 +377,7 @@ async function doGetReceiveTravelReward() {
       headers: headers(),
       body:`{}`
     }
-    $.get(opt, async (err, response, data) => {
+    $.post(opt, async (err, response, data) => {
       try {
         err && $.log(err);
         let result = $.toObj(data) || response;
@@ -385,7 +386,7 @@ async function doGetReceiveTravelReward() {
           $.messages.push(`领取旅游奖励：失败[暂无奖励可以领取]`)
           $.log(`领取旅游奖励失败：暂无奖励可以领取`)
         } else if (result.code == 2000) {
-          $.messages.push(`领取旅游奖励：[${type}]成功`)
+          $.messages.push(`领取旅游奖励`)
           $.log(`领取旅游奖励成功`);
         } else {
           $.messages.push(`领取旅游奖励：失败[${result.message}]`)
