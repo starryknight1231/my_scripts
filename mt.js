@@ -17,7 +17,7 @@ const $ = new Env('MT');
 
 const AES_KEY = 'qbhajinldepmucsonaaaccgypwuvcjaa'
 const AES_IV = '2018534749963515'
-const ITEM_CODES = ['10941','10942','10056'];   //需要预约的商品
+const ITEM_CODES = ['10941','10942'];   //需要预约的商品 ,'10056'
 $.userId = $.getdata('MT_USERID') || '1127167118';
 $.token = $.getdata('MT_TOKEN') || '';
 $.deviceId = $.getdata('MT_DEVICE_ID') || '';
